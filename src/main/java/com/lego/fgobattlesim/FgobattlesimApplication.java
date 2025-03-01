@@ -1,6 +1,7 @@
 package com.lego.fgobattlesim;
 
 //simple FGO damage calc
+//TO DO: Add RESTful web so you can give id and get a servant back
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -36,7 +37,7 @@ public class FgobattlesimApplication {
 
 	public static void main(String[] args) {
 		loadServants("servantdata.csv");
-		//SpringApplication.run(FgobattlesimApplication.class, args);
+		SpringApplication.run(FgobattlesimApplication.class, args);
 	}
 
 	public static void loadServants(String filename) {
