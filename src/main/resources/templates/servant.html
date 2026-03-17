@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Servant Details</title>
+</head>
+<body>
+<h1 th:text="${servant.name}">Servant Name</h1>
+<ul>
+    <li><strong>ID:</strong> <span th:text="${servant.id}"></span></li>
+    <li><strong>Class:</strong> <span th:text="${servant.className}"></span></li>
+    <li><strong>Rarity:</strong> <span th:text="${servant.rarity}"></span>★</li>
+    <li><strong>Max ATK:</strong> <span th:text="${servant.atkMax}"></span></li>
+    <li><strong>Max HP:</strong> <span th:text="${servant.hpMax}"></span></li>
+    <li><strong>Noble Phantasm:</strong> <span th:text="${noblePhantasmName}"></span></li>
+</ul>
+<p><a href="/">Back to selector</a></p>
+</body>
+</html>

@@ -1,0 +1,7 @@
+fgo:
+  api:
+    base-url: https://api.atlasacademy.io
+
+spring:
+  thymeleaf:
+    cache: false

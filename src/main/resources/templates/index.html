@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>FGO Servant Selector</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 2rem auto; }
+        .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+        label, select, button { font-size: 1rem; }
+        select { min-width: 320px; margin: 0 0.5rem; }
+    </style>
+</head>
+<body>
+<h1>FGO Servant Viewer (Atlas Academy API)</h1>
+
+<form method="get" action="/">
+    <label for="servantId">Choose a servant:</label>
+    <select id="servantId" name="servantId" required>
+        <option value="">-- Select --</option>
+        <option th:each="s : ${servants}"
+                th:value="${s.id}"
+                th:text="${s.name + ' (' + s.className + ')'}"
+                th:selected="${selectedServantId != null and selectedServantId == s.id}">
+        </option>
+    </select>
+    <button type="submit">Load details</button>
+</form>
+
+<div class="card" th:if="${servant != null}">
+    <h2 th:text="${servant.name}">Servant Name</h2>
+    <p><strong>Class:</strong> <span th:text="${servant.className}"></span></p>
+    <p><strong>Rarity:</strong> <span th:text="${servant.rarity}"></span>★</p>
+    <p><strong>Max ATK:</strong> <span th:text="${servant.atkMax}"></span></p>
+    <p><strong>Max HP:</strong> <span th:text="${servant.hpMax}"></span></p>
+    <p><strong>Noble Phantasm:</strong> <span th:text="${noblePhantasmName}"></span></p>
+    <p><a th:href="@{'/servants/' + ${servant.id}}">Open details page</a></p>
+</div>
+
+</body>
+</html>
