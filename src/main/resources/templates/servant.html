@@ -12,8 +12,19 @@
     <li><strong>Rarity:</strong> <span th:text="${servant.rarity}"></span>★</li>
     <li><strong>Max ATK:</strong> <span th:text="${servant.atkMax}"></span></li>
     <li><strong>Max HP:</strong> <span th:text="${servant.hpMax}"></span></li>
-    <li><strong>Noble Phantasm:</strong> <span th:text="${noblePhantasmName}"></span></li>
+    <li><strong>Primary Noble Phantasm:</strong> <span th:text="${noblePhantasmName}"></span></li>
 </ul>
+
+<h2>Servant Skills</h2>
+<ul>
+    <li th:each="skillSummary : ${skillSummaries}" th:text="${skillSummary}"></li>
+</ul>
+
+<h2>Noble Phantasms</h2>
+<ul>
+    <li th:each="npSummary : ${noblePhantasmSummaries}" th:text="${npSummary}"></li>
+</ul>
+
 <p><a href="/">Back to selector</a></p>
 </body>
 </html>

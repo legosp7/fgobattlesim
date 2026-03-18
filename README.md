@@ -7,7 +7,10 @@ A starter Spring Boot web app that consumes the **Atlas Academy Fate/Grand Order
 - Spring Boot MVC app with Thymeleaf.
 - Atlas Academy API integration (`https://api.atlasacademy.io`).
 - Home page with a **servant dropdown selector**.
-- Selecting a servant loads and displays servant details (class, rarity, max stats, NP name).
+- Selecting a servant loads and displays servant details:
+  - class, rarity, max stats
+  - Noble Phantasms
+  - **servant skill data with numeric values and percentage-style buff fields** parsed from Atlas Academy function values (`svals`, `svals2`, etc.).
 - Basic external API error handling.
 - Unit and MVC tests.
 
@@ -44,6 +47,8 @@ src/main/java/com/example/fgobattlesim
   controller/GlobalExceptionHandler.java
   dto/ServantSummaryDto.java
   dto/ServantDetailDto.java
+  dto/ServantSkillDto.java
+  dto/ServantFunctionDto.java
   dto/NoblePhantasmDto.java
   service/FgoApiService.java
   exception/ExternalApiException.java

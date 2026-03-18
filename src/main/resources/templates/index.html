@@ -4,10 +4,13 @@
     <meta charset="UTF-8" />
     <title>FGO Servant Selector</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 2rem auto; }
+        body { font-family: Arial, sans-serif; max-width: 900px; margin: 2rem auto; }
         .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
         label, select, button { font-size: 1rem; }
         select { min-width: 320px; margin: 0 0.5rem; }
+        ul { padding-left: 1.25rem; }
+        li { margin-bottom: 0.5rem; }
+        .muted { color: #444; font-size: 0.95rem; }
     </style>
 </head>
 <body>
@@ -32,7 +35,19 @@
     <p><strong>Rarity:</strong> <span th:text="${servant.rarity}"></span>★</p>
     <p><strong>Max ATK:</strong> <span th:text="${servant.atkMax}"></span></p>
     <p><strong>Max HP:</strong> <span th:text="${servant.hpMax}"></span></p>
-    <p><strong>Noble Phantasm:</strong> <span th:text="${noblePhantasmName}"></span></p>
+    <p><strong>Primary Noble Phantasm:</strong> <span th:text="${noblePhantasmName}"></span></p>
+
+    <h3>Servant Skills (numbers + buff percentages)</h3>
+    <p class="muted">Values are parsed from Atlas Academy function `svals` entries.</p>
+    <ul>
+        <li th:each="skillSummary : ${skillSummaries}" th:text="${skillSummary}"></li>
+    </ul>
+
+    <h3>Noble Phantasms (effects + buff percentages)</h3>
+    <ul>
+        <li th:each="npSummary : ${noblePhantasmSummaries}" th:text="${npSummary}"></li>
+    </ul>
+
     <p><a th:href="@{'/servants/' + ${servant.id}}">Open details page</a></p>
 </div>
 

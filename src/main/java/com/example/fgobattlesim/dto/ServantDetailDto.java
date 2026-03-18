@@ -2,6 +2,8 @@ package com.example.fgobattlesim.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.List;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ServantDetailDto(
         Long id,
@@ -10,6 +12,7 @@ public record ServantDetailDto(
         String className,
         Integer atkMax,
         Integer hpMax,
-        java.util.List<NoblePhantasmDto> noblePhantasms
+        List<ServantSkillDto> skills,
+        List<NoblePhantasmDto> noblePhantasms
 ) {
 }

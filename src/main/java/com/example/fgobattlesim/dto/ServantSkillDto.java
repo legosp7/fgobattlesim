@@ -5,9 +5,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record NoblePhantasmDto(
+public record ServantSkillDto(
+        Integer num,
         String name,
-        String card,
         List<ServantFunctionDto> functions
 ) {
 }
