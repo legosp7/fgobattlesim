@@ -4,13 +4,17 @@
     <meta charset="UTF-8" />
     <title>FGO Servant Selector</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 900px; margin: 2rem auto; }
+        body { font-family: Arial, sans-serif; max-width: 1100px; margin: 2rem auto; }
         .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
         label, select, button { font-size: 1rem; }
         select { min-width: 320px; margin: 0 0.5rem; }
         ul { padding-left: 1.25rem; }
         li { margin-bottom: 0.5rem; }
         .muted { color: #444; font-size: 0.95rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { border: 1px solid #ddd; padding: 0.6rem; text-align: left; vertical-align: top; }
+        th { background: #f5f5f5; }
+        .inline-form { margin-top: 1rem; }
     </style>
 </head>
 <body>
@@ -37,18 +41,48 @@
     <p><strong>Max HP:</strong> <span th:text="${servant.hpMax}"></span></p>
     <p><strong>Primary Noble Phantasm:</strong> <span th:text="${noblePhantasmName}"></span></p>
 
-    <h3>Servant Skills (numbers + buff percentages)</h3>
-    <p class="muted">Values are parsed from Atlas Academy function `svals` entries.</p>
-    <ul>
-        <li th:each="skillSummary : ${skillSummaries}" th:text="${skillSummary}"></li>
-    </ul>
+    <h3>Skill level table</h3>
+    <p class="muted">Choose a skill to compare all of its levels. Each row is a skill level, and each column is a parsed Atlas Academy numeric effect field.</p>
+
+    <form method="get" action="/" class="inline-form" th:if="${!skillOptions.isEmpty()}">
+        <input type="hidden" name="servantId" th:value="${servant.id}" />
+        <label for="skillIndex">Choose a skill:</label>
+        <select id="skillIndex" name="skillIndex">
+            <option th:each="option : ${skillOptions}"
+                    th:value="${option.index()}"
+                    th:text="${option.label()}"
+                    th:selected="${selectedSkillIndex == option.index()}">
+            </option>
+        </select>
+        <button type="submit">Show skill table</button>
+    </form>
+
+    <div th:if="${selectedSkillTable != null and !selectedSkillTable.rows().isEmpty()}">
+        <h4 th:text="${selectedSkillTable.title()}">Selected skill</h4>
+        <table>
+            <thead>
+            <tr>
+                <th>Level</th>
+                <th th:each="column : ${selectedSkillTable.columns()}" th:text="${column}">Value</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="row : ${selectedSkillTable.rows()}">
+                <td th:text="${row.level()}">1</td>
+                <td th:each="column : ${selectedSkillTable.columns()}"
+                    th:text="${row.values().containsKey(column) ? row.values().get(column) : '-'}">-</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <p th:if="${selectedSkillTable != null and selectedSkillTable.rows().isEmpty()}" class="muted">No level-based skill values were found for this skill.</p>
 
     <h3>Noble Phantasms (effects + buff percentages)</h3>
     <ul>
         <li th:each="npSummary : ${noblePhantasmSummaries}" th:text="${npSummary}"></li>
     </ul>
 
-    <p><a th:href="@{'/servants/' + ${servant.id}}">Open details page</a></p>
+    <p><a th:href="@{'/servants/' + ${servant.id}(skillIndex=${selectedSkillIndex})}">Open details page</a></p>
 </div>
 
 </body>

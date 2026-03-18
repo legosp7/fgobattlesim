@@ -41,14 +41,30 @@ class ServantControllerTest {
     }
 
     @Test
-    void indexWithServantIdShowsSkillAndNpData() throws Exception {
+    void indexWithServantIdShowsSkillSelectorAndLevelTable() throws Exception {
         when(service.getAllServants()).thenReturn(List.of(
                 new ServantSummaryDto(1L, "Artoria Pendragon", 5, "Saber")
         ));
 
-        ServantFunctionDto skillFn = new ServantFunctionDto(
-                "gainStar",
-                List.of(Map.of("Rate", 30, "Turn", 3)),
+        ServantFunctionDto charismaFn = new ServantFunctionDto(
+                "atkUp",
+                List.of(
+                        Map.of("Rate", 10, "Turn", 3),
+                        Map.of("Rate", 11, "Turn", 3),
+                        Map.of("Rate", 12, "Turn", 3)
+                ),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of());
+
+        ServantFunctionDto manaBurstFn = new ServantFunctionDto(
+                "busterUp",
+                List.of(
+                        Map.of("Rate", 30, "Turn", 1),
+                        Map.of("Rate", 32, "Turn", 1),
+                        Map.of("Rate", 34, "Turn", 1)
+                ),
                 List.of(),
                 List.of(),
                 List.of(),
@@ -69,13 +85,18 @@ class ServantControllerTest {
                 "Saber",
                 11221,
                 15150,
-                List.of(new ServantSkillDto(1, "Charisma", List.of(skillFn))),
+                List.of(
+                        new ServantSkillDto(1, "Charisma", List.of(charismaFn)),
+                        new ServantSkillDto(2, "Mana Burst", List.of(manaBurstFn))
+                ),
                 List.of(new NoblePhantasmDto("Excalibur", "BUSTER", List.of(npFn)))
         ));
 
-        mockMvc.perform(get("/").param("servantId", "1"))
+        mockMvc.perform(get("/").param("servantId", "1").param("skillIndex", "1"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("Skill 1 - Charisma")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Choose a skill:")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Skill 2 - Mana Burst")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("34%")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Excalibur")));
     }
 }

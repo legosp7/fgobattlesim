@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8" />
     <title>Servant Details</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1100px; margin: 2rem auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { border: 1px solid #ddd; padding: 0.6rem; text-align: left; vertical-align: top; }
+        th { background: #f5f5f5; }
+        .muted { color: #444; }
+    </style>
 </head>
 <body>
 <h1 th:text="${servant.name}">Servant Name</h1>
@@ -15,16 +22,44 @@
     <li><strong>Primary Noble Phantasm:</strong> <span th:text="${noblePhantasmName}"></span></li>
 </ul>
 
-<h2>Servant Skills</h2>
-<ul>
-    <li th:each="skillSummary : ${skillSummaries}" th:text="${skillSummary}"></li>
-</ul>
+<h2>Skill level table</h2>
+<form method="get" th:action="@{'/servants/' + ${servant.id}}" th:if="${!skillOptions.isEmpty()}">
+    <label for="skillIndex">Choose a skill:</label>
+    <select id="skillIndex" name="skillIndex">
+        <option th:each="option : ${skillOptions}"
+                th:value="${option.index()}"
+                th:text="${option.label()}"
+                th:selected="${selectedSkillIndex == option.index()}">
+        </option>
+    </select>
+    <button type="submit">Show skill table</button>
+</form>
+
+<div th:if="${selectedSkillTable != null and !selectedSkillTable.rows().isEmpty()}">
+    <h3 th:text="${selectedSkillTable.title()}">Selected skill</h3>
+    <table>
+        <thead>
+        <tr>
+            <th>Level</th>
+            <th th:each="column : ${selectedSkillTable.columns()}" th:text="${column}">Value</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${selectedSkillTable.rows()}">
+            <td th:text="${row.level()}">1</td>
+            <td th:each="column : ${selectedSkillTable.columns()}"
+                th:text="${row.values().containsKey(column) ? row.values().get(column) : '-'}">-</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<p th:if="${selectedSkillTable != null and selectedSkillTable.rows().isEmpty()}" class="muted">No level-based skill values were found for this skill.</p>
 
 <h2>Noble Phantasms</h2>
 <ul>
     <li th:each="npSummary : ${noblePhantasmSummaries}" th:text="${npSummary}"></li>
 </ul>
 
-<p><a href="/">Back to selector</a></p>
+<p><a th:href="@{'/'(servantId=${servant.id}, skillIndex=${selectedSkillIndex})}">Back to selector</a></p>
 </body>
 </html>
