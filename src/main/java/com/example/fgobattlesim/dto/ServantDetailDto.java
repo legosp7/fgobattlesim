@@ -10,8 +10,13 @@ public record ServantDetailDto(
         String name,
         Integer rarity,
         String className,
+        Integer atkBase,
+        Integer hpBase,
         Integer atkMax,
         Integer hpMax,
+        Integer lvMax,
+        List<Integer> atkGrowth,
+        List<Integer> hpGrowth,
         List<ServantSkillDto> skills,
         List<NoblePhantasmDto> noblePhantasms
 ) {

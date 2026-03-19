@@ -8,7 +8,8 @@ A starter Spring Boot web app that consumes the **Atlas Academy Fate/Grand Order
 - Atlas Academy API integration (`https://api.atlasacademy.io`).
 - Home page with a **servant dropdown selector**.
 - Selecting a servant loads and displays servant details:
-  - class, rarity, max stats
+  - class and rarity
+  - a **servant level selector from 1-120** that updates displayed HP and ATK
   - Noble Phantasms
   - **servant skill data with a skill dropdown and a level-by-level table**
   - numeric values and percentage-style buff fields parsed from Atlas Academy function values (`svals`, `svals2`, etc.)
