@@ -6,12 +6,12 @@ A starter Spring Boot web app that consumes the **Atlas Academy Fate/Grand Order
 
 - Spring Boot MVC app with Thymeleaf.
 - Atlas Academy API integration (`https://api.atlasacademy.io`).
-- Home page with a **servant dropdown selector**.
+- Home page with a **servant dropdown selector** that updates automatically when you choose an option.
 - Selecting a servant loads and displays servant details:
   - class and rarity
   - a **servant level selector from 1-120** that updates displayed HP and ATK
   - Noble Phantasms
-  - **servant skill data with a skill dropdown and a level-by-level table**
+  - **servant skill data with an auto-submitting skill dropdown and a level-by-level table**
   - numeric values and percentage-style buff fields parsed from Atlas Academy function values (`svals`, `svals2`, etc.)
 - Basic external API error handling.
 - Unit and MVC tests.
