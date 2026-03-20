@@ -1,11 +1,13 @@
 package com.example.fgobattlesim.controller;
 
+import com.example.fgobattlesim.dto.CraftEssenceSummaryDto;
 import com.example.fgobattlesim.dto.NoblePhantasmDto;
 import com.example.fgobattlesim.dto.ServantDetailDto;
 import com.example.fgobattlesim.dto.ServantFunctionDto;
 import com.example.fgobattlesim.dto.ServantSkillDto;
 import com.example.fgobattlesim.dto.ServantSummaryDto;
 import com.example.fgobattlesim.service.FgoApiService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -20,7 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(ServantController.class)
+@WebMvcTest({ServantController.class, PartyController.class})
 class ServantControllerTest {
 
     @Autowired
@@ -28,6 +30,14 @@ class ServantControllerTest {
 
     @MockBean
     private FgoApiService service;
+
+    @BeforeEach
+    void setUp() {
+        when(service.getAllCraftEssences()).thenReturn(List.of(
+                new CraftEssenceSummaryDto(100L, "Kaleidoscope", 5),
+                new CraftEssenceSummaryDto(101L, "Imaginary Element", 4)
+        ));
+    }
 
     @Test
     void indexRendersDropdownOptions() throws Exception {
@@ -37,7 +47,8 @@ class ServantControllerTest {
 
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("Artoria Pendragon")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Artoria Pendragon")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Party")));
     }
 
     @Test
@@ -91,5 +102,23 @@ class ServantControllerTest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Choose a skill:")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("12%")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Excalibur")));
+    }
+
+    @Test
+    void partyPageShowsClassServantAndCraftEssenceSelectors() throws Exception {
+        when(service.getAllServants()).thenReturn(List.of(
+                new ServantSummaryDto(1L, "Artoria Pendragon", 5, "Saber"),
+                new ServantSummaryDto(2L, "EMIYA", 4, "Archer")
+        ));
+
+        mockMvc.perform(get("/party")
+                        .param("className", "Saber")
+                        .param("servantId", "1")
+                        .param("craftEssenceId", "100"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Party Builder")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Artoria Pendragon")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Kaleidoscope")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Add another servant to party")));
     }
 }

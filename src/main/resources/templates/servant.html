@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <title>Servant Details</title>
     <style>
+        nav { margin-bottom: 1.5rem; }
+        nav a { margin-right: 1rem; }
         body { font-family: Arial, sans-serif; max-width: 1100px; margin: 2rem auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
         th, td { border: 1px solid #ddd; padding: 0.6rem; text-align: left; vertical-align: top; }
@@ -13,6 +15,10 @@
     </style>
 </head>
 <body>
+<nav>
+    <a href="/">Servants</a>
+    <a href="/party">Party</a>
+</nav>
 <h1 th:text="${servant.name}">Servant Name</h1>
 <ul>
     <li><strong>ID:</strong> <span th:text="${servant.id}"></span></li>

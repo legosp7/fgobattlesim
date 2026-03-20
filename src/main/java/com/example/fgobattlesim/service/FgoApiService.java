@@ -1,6 +1,7 @@
 package com.example.fgobattlesim.service;
 
 import com.example.fgobattlesim.client.FgoApiClient;
+import com.example.fgobattlesim.dto.CraftEssenceSummaryDto;
 import com.example.fgobattlesim.dto.ServantDetailDto;
 import com.example.fgobattlesim.dto.ServantSummaryDto;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,13 @@ public class FgoApiService {
         return client.fetchServants().stream()
                 .filter(s -> s.id() != null && s.name() != null && !s.name().isBlank())
                 .sorted(Comparator.comparing(ServantSummaryDto::name, String.CASE_INSENSITIVE_ORDER))
+                .toList();
+    }
+
+    public List<CraftEssenceSummaryDto> getAllCraftEssences() {
+        return client.fetchCraftEssences().stream()
+                .filter(ce -> ce.id() != null && ce.name() != null && !ce.name().isBlank())
+                .sorted(Comparator.comparing(CraftEssenceSummaryDto::name, String.CASE_INSENSITIVE_ORDER))
                 .toList();
     }
 
