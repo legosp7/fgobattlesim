@@ -1,27 +1,34 @@
 # fgobattlesim
 
-A starter Spring Boot web app that consumes the **Atlas Academy Fate/Grand Order API**.
+A Spring Boot back end with a **React front end** for exploring Fate/Grand Order data from the **Atlas Academy API**.
 
 ## What this implementation includes
 
-- Spring Boot MVC app with Thymeleaf.
+- Spring Boot MVC/API application.
+- React single-page front end served from Spring Boot static resources.
 - Atlas Academy API integration (`https://api.atlasacademy.io`).
-- Home page with a **servant dropdown selector** that updates automatically when you choose an option.
-- Added a **Party** tab where you can choose a class, select a servant from that class, choose a craft essence, and add more servant slots to the party.
-- Selecting a servant loads and displays servant details:
-  - class and rarity
-  - a **servant level selector from 1-120** that updates displayed HP and ATK
-  - Noble Phantasms
-  - **servant skill data with an auto-submitting skill dropdown and a level-by-level table**
-  - numeric values and percentage-style buff fields parsed from Atlas Academy function values (`svals`, `svals2`, etc.)
+- A **Servants** tab for:
+  - selecting a servant
+  - selecting servant level from 1-120
+  - viewing HP/ATK at the selected level
+  - viewing skill level tables
+  - viewing Noble Phantasm summaries
+- A **Party** tab for:
+  - selecting a class for each party slot
+  - selecting a servant from that class
+  - selecting a craft essence from a fetched list
+  - adding another servant slot to the party
+- REST API endpoints that power the React front end:
+  - `GET /api/servants`
+  - `GET /api/servants/{id}`
+  - `GET /api/craft-essences`
 - Basic external API error handling.
-- Unit and MVC tests.
 
 ## Tech stack
 
 - Java 17
 - Spring Boot 3
-- Spring Web + Thymeleaf
+- React 18 (CDN-served)
 - Maven
 
 ## Run locally
@@ -46,8 +53,8 @@ mvn test
 src/main/java/com/example/fgobattlesim
   client/FgoApiClient.java
   config/HttpClientConfig.java
-  controller/ServantController.java
-  controller/PartyController.java
+  controller/ApiController.java
+  controller/SpaController.java
   controller/GlobalExceptionHandler.java
   dto/ServantSummaryDto.java
   dto/CraftEssenceSummaryDto.java
@@ -58,8 +65,8 @@ src/main/java/com/example/fgobattlesim
   service/FgoApiService.java
   exception/ExternalApiException.java
 
-src/main/resources/templates
+src/main/resources/static
   index.html
-  servant.html
-  error.html
+  app.css
+  app.jsx
 ```
