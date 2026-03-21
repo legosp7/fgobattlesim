@@ -9,6 +9,12 @@ import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Service layer.
+ *
+ * <p>This is where we put app-specific rules that sit between the controller
+ * layer and the raw HTTP client layer.</p>
+ */
 @Service
 public class FgoApiService {
 
@@ -18,6 +24,9 @@ public class FgoApiService {
         this.client = client;
     }
 
+    /**
+     * Returns servants filtered for usable display and sorted alphabetically.
+     */
     public List<ServantSummaryDto> getAllServants() {
         return client.fetchServants().stream()
                 .filter(s -> s.id() != null && s.name() != null && !s.name().isBlank())
@@ -25,6 +34,9 @@ public class FgoApiService {
                 .toList();
     }
 
+    /**
+     * Returns craft essences filtered for usable display and sorted alphabetically.
+     */
     public List<CraftEssenceSummaryDto> getAllCraftEssences() {
         return client.fetchCraftEssences().stream()
                 .filter(ce -> ce.id() != null && ce.name() != null && !ce.name().isBlank())
@@ -32,6 +44,9 @@ public class FgoApiService {
                 .toList();
     }
 
+    /**
+     * Returns full detail for a single servant.
+     */
     public ServantDetailDto getServant(Long id) {
         return client.fetchServantById(id);
     }

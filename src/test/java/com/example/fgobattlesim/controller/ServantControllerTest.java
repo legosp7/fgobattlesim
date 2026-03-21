@@ -22,6 +22,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * MVC tests for the API controller and SPA forwarding controller.
+ *
+ * <p>Teaching note: WebMvcTest starts only the MVC slice of Spring, not the
+ * full application. That makes these tests faster and more focused.</p>
+ */
 @WebMvcTest({ApiController.class, SpaController.class})
 class ServantControllerTest {
 

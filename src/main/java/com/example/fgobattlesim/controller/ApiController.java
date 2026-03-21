@@ -11,6 +11,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * REST API controller used by the React front end.
+ *
+ * <p>Important beginner idea: controllers should be thin. They should mainly
+ * translate HTTP requests into calls to services.</p>
+ */
 @RestController
 @RequestMapping("/api")
 public class ApiController {
@@ -21,16 +27,25 @@ public class ApiController {
         this.service = service;
     }
 
+    /**
+     * Endpoint for servant dropdown data.
+     */
     @GetMapping("/servants")
     public List<ServantSummaryDto> servants() {
         return service.getAllServants();
     }
 
+    /**
+     * Endpoint for one servant's detailed data.
+     */
     @GetMapping("/servants/{id}")
     public ServantDetailDto servant(@PathVariable Long id) {
         return service.getServant(id);
     }
 
+    /**
+     * Endpoint for craft essence dropdown data.
+     */
     @GetMapping("/craft-essences")
     public List<CraftEssenceSummaryDto> craftEssences() {
         return service.getAllCraftEssences();

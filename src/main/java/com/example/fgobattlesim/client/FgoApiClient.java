@@ -11,6 +11,12 @@ import org.springframework.web.client.RestClientException;
 
 import java.util.List;
 
+/**
+ * Low-level Atlas Academy HTTP client.
+ *
+ * <p>This class is intentionally focused only on external API communication.
+ * It does not sort data, build UI structures, or make presentation decisions.</p>
+ */
 @Component
 public class FgoApiClient {
 
@@ -24,11 +30,15 @@ public class FgoApiClient {
         this.restClient = restClient;
     }
 
+    /**
+     * Fetches servant summary data for dropdown usage.
+     */
     public List<ServantSummaryDto> fetchServants() {
         try {
             List<ServantSummaryDto> servants = restClient.get()
                     .uri(BASIC_SERVANT_ENDPOINT)
                     .retrieve()
+                    // ParameterizedTypeReference is needed because the response is a List<T>.
                     .body(new ParameterizedTypeReference<>() {});
             return servants == null ? List.of() : servants;
         } catch (RestClientException ex) {
@@ -36,6 +46,9 @@ public class FgoApiClient {
         }
     }
 
+    /**
+     * Fetches craft essence summary data for dropdown usage.
+     */
     public List<CraftEssenceSummaryDto> fetchCraftEssences() {
         try {
             List<CraftEssenceSummaryDto> craftEssences = restClient.get()
@@ -48,9 +61,13 @@ public class FgoApiClient {
         }
     }
 
+    /**
+     * Fetches one servant's detailed data.
+     */
     public ServantDetailDto fetchServantById(Long id) {
         try {
             return restClient.get()
+                    // {id} is expanded by Spring into the actual path value.
                     .uri(SERVANT_DETAIL_ENDPOINT, id)
                     .retrieve()
                     .body(ServantDetailDto.class);

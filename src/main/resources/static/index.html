@@ -5,11 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FGO Viewer</title>
     <link rel="stylesheet" href="/app.css" />
+    <!--
+      We load React from a CDN to keep this tutorial project lightweight.
+      In a production React app, I would usually use Vite or another build tool,
+      but this approach is easier for learning because it removes extra setup.
+    -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel lets the browser understand JSX in app.jsx. -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
+<!-- React renders the whole app into this one root element. -->
 <div id="root"></div>
 <script type="text/babel" src="/app.jsx"></script>
 </body>

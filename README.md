@@ -2,6 +2,28 @@
 
 A Spring Boot back end with a **React front end** for exploring Fate/Grand Order data from the **Atlas Academy API**.
 
+## Why this project is structured this way
+
+If you are learning both **Spring Boot** and **React**, this repo now gives you a very common real-world split:
+
+- **Spring Boot handles server-side concerns**:
+  - calling the external Atlas Academy API
+  - mapping JSON into Java records (DTOs)
+  - exposing clean REST endpoints for the browser
+  - centralizing error handling
+- **React handles browser-side concerns**:
+  - rendering tabs and dropdowns
+  - tracking UI state such as selected servant, level, and party slots
+  - combining API responses into an interactive UI
+
+I chose this split because it teaches a strong beginner mental model:
+
+1. **Backend = data + business access layer**
+2. **Frontend = interaction + presentation layer**
+3. The two sides communicate with **JSON over HTTP**
+
+That architecture scales better than mixing all rendering logic inside server templates once the UI becomes interactive.
+
 ## What this implementation includes
 
 - Spring Boot MVC/API application.
@@ -23,6 +45,98 @@ A Spring Boot back end with a **React front end** for exploring Fate/Grand Order
   - `GET /api/servants/{id}`
   - `GET /api/craft-essences`
 - Basic external API error handling.
+
+## Tutorial walkthrough of the codebase
+
+### 1) Spring Boot entrypoint
+
+`FgoBattleSimApplication` is the class with `main(...)`. It tells Spring Boot where your application starts and triggers component scanning so your controllers, services, and config classes are discovered automatically.
+
+### 2) Configuration
+
+`HttpClientConfig` creates a reusable `RestClient` bean. I chose a bean here because it keeps HTTP configuration in **one place**, instead of scattering API setup across multiple classes.
+
+### 3) DTOs
+
+The files under `dto/` are simple records that describe the shape of the JSON returned by Atlas Academy.
+
+I used **records** because they are ideal for read-only API data:
+
+- less boilerplate than traditional Java classes
+- automatically give you constructor/accessors
+- easier for beginners to read
+
+### 4) Client layer
+
+`FgoApiClient` is the **lowest-level Atlas Academy integration layer**.
+
+Its job is only to:
+
+- build the request URL
+- call the API
+- deserialize JSON into DTOs
+- wrap HTTP/client failures in `ExternalApiException`
+
+I kept this logic separate so the rest of the app does not need to know HTTP details.
+
+### 5) Service layer
+
+`FgoApiService` sits on top of the client.
+
+Its job is to apply app-specific rules such as:
+
+- filtering invalid servant/craft essence rows
+- sorting data for display
+
+This separation matters because it keeps controllers thinner and easier to test.
+
+### 6) API controller layer
+
+`ApiController` exposes JSON endpoints for the browser.
+
+Why not let React call Atlas Academy directly?
+
+Because if Spring Boot stays between the browser and Atlas Academy, you can later add:
+
+- caching
+- rate limiting
+- logging
+- retries
+- authentication
+- your own custom data shaping
+
+without rewriting the front end.
+
+### 7) SPA routing controller
+
+`SpaController` forwards browser routes like `/` and `/party` to the React entry page (`index.html`).
+
+This is a common SPA pattern: Spring serves the app shell, then React decides what to render in the browser.
+
+### 8) React front end
+
+The front end lives in:
+
+- `src/main/resources/static/index.html`
+- `src/main/resources/static/app.css`
+- `src/main/resources/static/app.jsx`
+
+I intentionally kept it simple:
+
+- no Vite/Webpack setup yet
+- React is loaded from a CDN
+- Babel in the browser transpiles JSX
+
+That is **not** how I would build a production React app, but it is a good teaching step because it removes extra tooling complexity while you focus on Spring + React concepts.
+
+### 9) Tests
+
+The tests show two different testing styles:
+
+- `FgoApiServiceTest`: unit test for backend service behavior
+- `ServantControllerTest`: web MVC test for HTTP/API behavior
+
+This is useful for learning because it shows that not every test needs the whole app running.
 
 ## Tech stack
 

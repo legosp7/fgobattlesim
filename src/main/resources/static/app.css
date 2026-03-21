@@ -1,3 +1,9 @@
+/*
+  app.css contains only plain CSS so the visual layer stays easy to inspect.
+  I chose simple utility-like class names (.card, .grid, .nav) because they map
+  clearly to what you see in the UI and are beginner-friendly.
+*/
+
 :root {
   font-family: Arial, sans-serif;
   color: #1f2937;

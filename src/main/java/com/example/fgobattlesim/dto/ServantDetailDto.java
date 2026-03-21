@@ -4,6 +4,16 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.List;
 
+/**
+ * Full servant detail model used by the React front end.
+ *
+ * <p>Why include both base/max stats and growth arrays?</p>
+ * <ul>
+ *     <li>The growth arrays are the most accurate source when they exist.</li>
+ *     <li>The base/max stats let the front end fall back to interpolation if
+ *     needed.</li>
+ * </ul>
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ServantDetailDto(
         Long id,
