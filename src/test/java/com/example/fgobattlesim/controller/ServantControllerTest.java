@@ -1,5 +1,7 @@
 package com.example.fgobattlesim.controller;
 
+import com.example.fgobattlesim.dto.CraftEssenceDetailDto;
+import com.example.fgobattlesim.dto.CraftEssenceSkillDto;
 import com.example.fgobattlesim.dto.CraftEssenceSummaryDto;
 import com.example.fgobattlesim.dto.NoblePhantasmDto;
 import com.example.fgobattlesim.dto.ServantDetailDto;
@@ -99,6 +101,27 @@ class ServantControllerTest {
                 .andExpect(jsonPath("$.atkGrowth[1]").value(3000))
                 .andExpect(jsonPath("$.skills[0].name").value("Charisma"))
                 .andExpect(jsonPath("$.noblePhantasms[0].name").value("Excalibur"));
+    }
+
+
+    @Test
+    void craftEssenceDetailApiReturnsStatsAndEffects() throws Exception {
+        when(service.getCraftEssence(100L)).thenReturn(new CraftEssenceDetailDto(
+                100L,
+                "Kaleidoscope",
+                5,
+                0,
+                0,
+                500,
+                0,
+                List.of(new CraftEssenceSkillDto("Starting NP", "Grants 80% NP gauge."))
+        ));
+
+        mockMvc.perform(get("/api/craft-essences/100"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Kaleidoscope"))
+                .andExpect(jsonPath("$.atkMax").value(500))
+                .andExpect(jsonPath("$.skills[0].name").value("Starting NP"));
     }
 
     @Test

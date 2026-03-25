@@ -38,12 +38,16 @@ That architecture scales better than mixing all rendering logic inside server te
 - A **Party** tab for:
   - selecting a class for each party slot
   - selecting a servant from that class
+  - selecting servant level, NP level, NP upgrades (0-2), and Fou/Golden Fou toggles
+  - viewing servant ATK/HP with those modifiers plus NP card type and NP damage modifier
   - selecting a craft essence from a fetched list
+  - viewing craft essence stats/effects after selection
   - adding another servant slot to the party
 - REST API endpoints that power the React front end:
   - `GET /api/servants`
   - `GET /api/servants/{id}`
   - `GET /api/craft-essences`
+  - `GET /api/craft-essences/{id}`
 - Basic external API error handling.
 
 ## Tutorial walkthrough of the codebase

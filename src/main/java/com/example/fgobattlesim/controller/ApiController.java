@@ -1,5 +1,6 @@
 package com.example.fgobattlesim.controller;
 
+import com.example.fgobattlesim.dto.CraftEssenceDetailDto;
 import com.example.fgobattlesim.dto.CraftEssenceSummaryDto;
 import com.example.fgobattlesim.dto.ServantDetailDto;
 import com.example.fgobattlesim.dto.ServantSummaryDto;
@@ -41,6 +42,14 @@ public class ApiController {
     @GetMapping("/servants/{id}")
     public ServantDetailDto servant(@PathVariable Long id) {
         return service.getServant(id);
+    }
+
+    /**
+     * Endpoint for one craft essence's detailed data.
+     */
+    @GetMapping("/craft-essences/{id}")
+    public CraftEssenceDetailDto craftEssence(@PathVariable Long id) {
+        return service.getCraftEssence(id);
     }
 
     /**

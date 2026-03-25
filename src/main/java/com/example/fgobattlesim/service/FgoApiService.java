@@ -1,6 +1,7 @@
 package com.example.fgobattlesim.service;
 
 import com.example.fgobattlesim.client.FgoApiClient;
+import com.example.fgobattlesim.dto.CraftEssenceDetailDto;
 import com.example.fgobattlesim.dto.CraftEssenceSummaryDto;
 import com.example.fgobattlesim.dto.ServantDetailDto;
 import com.example.fgobattlesim.dto.ServantSummaryDto;
@@ -42,6 +43,13 @@ public class FgoApiService {
                 .filter(ce -> ce.id() != null && ce.name() != null && !ce.name().isBlank())
                 .sorted(Comparator.comparing(CraftEssenceSummaryDto::name, String.CASE_INSENSITIVE_ORDER))
                 .toList();
+    }
+
+    /**
+     * Returns full detail for a single craft essence.
+     */
+    public CraftEssenceDetailDto getCraftEssence(Long id) {
+        return client.fetchCraftEssenceById(id);
     }
 
     /**
