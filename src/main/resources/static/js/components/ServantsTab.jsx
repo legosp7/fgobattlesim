@@ -1,4 +1,3 @@
-(() => {
 const { MAX_LEVEL } = window.FgoConstants;
 const { safeName } = window.FgoUtils;
 
@@ -67,4 +66,3 @@ window.FgoComponents.ServantsTab = function ServantsTab(props) {
     </>
   );
 };
-})();

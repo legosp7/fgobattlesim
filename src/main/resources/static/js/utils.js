@@ -1,4 +1,3 @@
-(() => {
 const { MAX_LEVEL, NP_LEVEL_MODIFIERS } = window.FgoConstants;
 
 window.FgoUtils = {
@@ -125,4 +124,3 @@ window.FgoUtils = {
     return value && String(value).trim() ? value : 'Unknown';
   }
 };
-})();

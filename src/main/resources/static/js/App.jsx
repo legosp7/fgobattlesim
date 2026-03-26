@@ -1,4 +1,3 @@
-(() => {
 const { useEffect, useMemo, useState } = React;
 const { Routes, Route, NavLink, Navigate } = ReactRouterDOM;
 
@@ -169,4 +168,3 @@ window.FgoApp = function FgoApp() {
     </div>
   );
 };
-})();
