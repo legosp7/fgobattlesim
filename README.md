@@ -124,20 +124,13 @@ The front end lives in:
 
 - `src/main/resources/static/index.html`
 - `src/main/resources/static/app.css`
-- `src/main/resources/static/js/constants.js`
-- `src/main/resources/static/js/api.js`
-- `src/main/resources/static/js/utils.js`
-- `src/main/resources/static/js/components/ServantsTab.jsx`
-- `src/main/resources/static/js/components/PartyTab.jsx`
-- `src/main/resources/static/js/App.jsx`
-- `src/main/resources/static/js/main.jsx`
+- `src/main/resources/static/app.jsx`
 
 I intentionally kept it simple:
 
 - no Vite/Webpack setup yet
-- React + React Router are loaded from a CDN
+- React is loaded from a CDN
 - Babel in the browser transpiles JSX
-- routing uses `react-router-dom` (`/servants` and `/party`)
 
 That is **not** how I would build a production React app, but it is a good teaching step because it removes extra tooling complexity while you focus on Spring + React concepts.
 
