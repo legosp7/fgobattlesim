@@ -144,7 +144,12 @@ Single route table for the app.
 **Why this matters:** one place to reason about navigation behavior.
 
 ### `frontend/src/pages/ServantsPage.tsx`
-Loads and displays all servants grouped by class.
+Uses a guided selector flow:
+- choose class in FGO class order (Saber → Archer → Lancer → ...)
+- choose servant from that class
+- inspect skill values by selected skill + selected skill level
+- inspect NP values by selected NP upgrade/version + selected NP level
+- show NP card type mapping (1/Arts, 2/Buster, 3/Quick)
 
 ### `frontend/src/pages/ServantDetailPage.tsx`
 Loads route param `:id`, fetches servant detail + NP detail, and renders level-adjusted stat examples.
@@ -179,4 +184,3 @@ mvn test
 Includes:
 - service-level unit test (`FgoApiServiceTest`)
 - MVC slice tests (`ServantControllerTest`)
-
