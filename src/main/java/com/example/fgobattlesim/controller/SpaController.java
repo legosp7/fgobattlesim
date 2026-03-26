@@ -12,10 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class SpaController {
 
-    /**
-     * Sends supported SPA routes to the same static index page.
-     */
-    @GetMapping({"/", "/party", "/servants/{id}"})
+    @GetMapping({"/", "/servants", "/servants/{id}", "/party", "/results"})
     public String index() {
         return "forward:/index.html";
     }

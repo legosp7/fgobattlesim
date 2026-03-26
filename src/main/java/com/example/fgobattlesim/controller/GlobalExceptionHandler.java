@@ -1,9 +1,12 @@
 package com.example.fgobattlesim.controller;
 
 import com.example.fgobattlesim.exception.ExternalApiException;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.Map;
 
 /**
  * Centralized MVC-style exception handling.
@@ -12,15 +15,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
  * but it still demonstrates a useful Spring concept: keep cross-cutting error
  * handling in one place instead of duplicating try/catch in controllers.</p>
  */
-@ControllerAdvice
+
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    /**
-     * Places a friendly error message in the model.
-     */
     @ExceptionHandler(ExternalApiException.class)
-    public String handleExternalApiException(ExternalApiException ex, Model model) {
-        model.addAttribute("error", ex.getMessage());
-        return "error";
+    @ResponseStatus(HttpStatus.BAD_GATEWAY)
+    public Map<String, String> handleExternalApiException(ExternalApiException ex) {
+        return Map.of("message", ex.getMessage());
     }
 }
