@@ -3,6 +3,7 @@ package com.example.fgobattlesim.service;
 import com.example.fgobattlesim.client.FgoApiClient;
 import com.example.fgobattlesim.dto.CraftEssenceDetailDto;
 import com.example.fgobattlesim.dto.CraftEssenceSummaryDto;
+import com.example.fgobattlesim.dto.NoblePhantasmDetailDto;
 import com.example.fgobattlesim.dto.ServantDetailDto;
 import com.example.fgobattlesim.dto.ServantSummaryDto;
 import org.springframework.stereotype.Service;
@@ -50,6 +51,13 @@ public class FgoApiService {
      */
     public CraftEssenceDetailDto getCraftEssence(Long id) {
         return client.fetchCraftEssenceById(id);
+    }
+
+    /**
+     * Returns full detail for a single Noble Phantasm (NP endpoint).
+     */
+    public NoblePhantasmDetailDto getNoblePhantasm(Long id) {
+        return client.fetchNoblePhantasmById(id);
     }
 
     /**

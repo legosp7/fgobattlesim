@@ -34,18 +34,19 @@ That architecture scales better than mixing all rendering logic inside server te
   - selecting servant level from 1-120
   - viewing HP/ATK at the selected level
   - viewing skill level tables
-  - viewing Noble Phantasm summaries
+  - viewing Noble Phantasm summaries fetched from Atlas Academy's NP endpoint
 - A **Party** tab for:
   - selecting a class for each party slot
   - selecting a servant from that class
   - selecting servant level, NP level, NP upgrades (0-2), and Fou/Golden Fou toggles
-  - viewing servant ATK/HP with those modifiers plus NP card type and NP damage modifier
+  - viewing servant ATK/HP with those modifiers plus NP card type and NP damage modifier (NP card/details are fetched from NP API)
   - selecting a craft essence from a fetched list
   - viewing craft essence stats/effects after selection
   - adding another servant slot to the party
 - REST API endpoints that power the React front end:
   - `GET /api/servants`
   - `GET /api/servants/{id}`
+  - `GET /api/noble-phantasms/{id}`
   - `GET /api/craft-essences`
   - `GET /api/craft-essences/{id}`
 - Basic external API error handling.

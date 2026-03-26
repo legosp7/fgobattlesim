@@ -3,6 +3,7 @@ package com.example.fgobattlesim.controller;
 import com.example.fgobattlesim.dto.CraftEssenceDetailDto;
 import com.example.fgobattlesim.dto.CraftEssenceSkillDto;
 import com.example.fgobattlesim.dto.CraftEssenceSummaryDto;
+import com.example.fgobattlesim.dto.NoblePhantasmDetailDto;
 import com.example.fgobattlesim.dto.NoblePhantasmDto;
 import com.example.fgobattlesim.dto.ServantDetailDto;
 import com.example.fgobattlesim.dto.ServantFunctionDto;
@@ -92,7 +93,7 @@ class ServantControllerTest {
                 List.of(1854, 3000, 4200),
                 List.of(2220, 3600, 5100),
                 List.of(new ServantSkillDto(1, "Charisma", List.of(charismaFn))),
-                List.of(new NoblePhantasmDto("Excalibur", "BUSTER", List.of(npFn)))
+                List.of(new NoblePhantasmDto(5001L, "Excalibur", "BUSTER", List.of(npFn)))
         ));
 
         mockMvc.perform(get("/api/servants/1"))
@@ -103,6 +104,30 @@ class ServantControllerTest {
                 .andExpect(jsonPath("$.noblePhantasms[0].name").value("Excalibur"));
     }
 
+
+
+    @Test
+    void noblePhantasmApiReturnsNoblePhantasmDetails() throws Exception {
+        ServantFunctionDto npFn = new ServantFunctionDto(
+                "damageNp",
+                List.of(Map.of("Value", 600, "Rate", 20)),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of());
+
+        when(service.getNoblePhantasm(5001L)).thenReturn(new NoblePhantasmDetailDto(
+                5001L,
+                "Excalibur",
+                "BUSTER",
+                List.of(npFn)
+        ));
+
+        mockMvc.perform(get("/api/noble-phantasms/5001"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Excalibur"))
+                .andExpect(jsonPath("$.card").value("BUSTER"));
+    }
 
     @Test
     void craftEssenceDetailApiReturnsStatsAndEffects() throws Exception {

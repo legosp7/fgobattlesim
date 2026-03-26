@@ -2,6 +2,7 @@ package com.example.fgobattlesim.controller;
 
 import com.example.fgobattlesim.dto.CraftEssenceDetailDto;
 import com.example.fgobattlesim.dto.CraftEssenceSummaryDto;
+import com.example.fgobattlesim.dto.NoblePhantasmDetailDto;
 import com.example.fgobattlesim.dto.ServantDetailDto;
 import com.example.fgobattlesim.dto.ServantSummaryDto;
 import com.example.fgobattlesim.service.FgoApiService;
@@ -42,6 +43,14 @@ public class ApiController {
     @GetMapping("/servants/{id}")
     public ServantDetailDto servant(@PathVariable Long id) {
         return service.getServant(id);
+    }
+
+    /**
+     * Endpoint for one Noble Phantasm's detailed data.
+     */
+    @GetMapping("/noble-phantasms/{id}")
+    public NoblePhantasmDetailDto noblePhantasm(@PathVariable Long id) {
+        return service.getNoblePhantasm(id);
     }
 
     /**

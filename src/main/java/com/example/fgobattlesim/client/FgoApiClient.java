@@ -2,6 +2,7 @@ package com.example.fgobattlesim.client;
 
 import com.example.fgobattlesim.dto.CraftEssenceDetailDto;
 import com.example.fgobattlesim.dto.CraftEssenceSummaryDto;
+import com.example.fgobattlesim.dto.NoblePhantasmDetailDto;
 import com.example.fgobattlesim.dto.ServantDetailDto;
 import com.example.fgobattlesim.dto.ServantSummaryDto;
 import com.example.fgobattlesim.exception.ExternalApiException;
@@ -25,6 +26,7 @@ public class FgoApiClient {
     private static final String SERVANT_DETAIL_ENDPOINT = "/nice/NA/servant/{id}";
     private static final String BASIC_CRAFT_ESSENCE_ENDPOINT = "/export/NA/basic_equip.json";
     private static final String CRAFT_ESSENCE_DETAIL_ENDPOINT = "/nice/NA/equip/{id}";
+    private static final String NOBLE_PHANTASM_DETAIL_ENDPOINT = "/nice/NA/NP/{id}";
 
     private final RestClient restClient;
 
@@ -74,6 +76,20 @@ public class FgoApiClient {
                     .body(CraftEssenceDetailDto.class);
         } catch (RestClientException ex) {
             throw new ExternalApiException("Could not fetch craft essence details from Atlas Academy API", ex);
+        }
+    }
+
+    /**
+     * Fetches one Noble Phantasm's detailed data from Atlas Academy's NP endpoint.
+     */
+    public NoblePhantasmDetailDto fetchNoblePhantasmById(Long id) {
+        try {
+            return restClient.get()
+                    .uri(NOBLE_PHANTASM_DETAIL_ENDPOINT, id)
+                    .retrieve()
+                    .body(NoblePhantasmDetailDto.class);
+        } catch (RestClientException ex) {
+            throw new ExternalApiException("Could not fetch noble phantasm details from Atlas Academy API", ex);
         }
     }
 

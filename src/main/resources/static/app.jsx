@@ -1,43 +1,23 @@
 const { useEffect, useMemo, useState } = React;
 
-// App-wide constants used in both tabs.
 const MIN_LEVEL = 1;
 const MAX_LEVEL = 120;
+const NP_LEVEL_MODIFIERS = { 1: 100, 2: 133, 3: 166, 4: 200, 5: 233 };
 
-// For simplicity, we model NP levels 1-5 with a teaching-friendly table.
-const NP_LEVEL_MODIFIERS = {
-  1: 100,
-  2: 133,
-  3: 166,
-  4: 200,
-  5: 233
-};
-
-/**
- * Root React component.
- *
- * Teaching note:
- * We keep most shared state at the top so it can be passed to tabs as props.
- */
 function App() {
   const initialTab = window.location.pathname.startsWith('/party') ? 'party' : 'servants';
 
   const [activeTab, setActiveTab] = useState(initialTab);
   const [servants, setServants] = useState([]);
   const [craftEssences, setCraftEssences] = useState([]);
-
-  // Servants tab state
   const [selectedServantId, setSelectedServantId] = useState('');
   const [selectedLevel, setSelectedLevel] = useState(1);
   const [selectedSkillIndex, setSelectedSkillIndex] = useState(0);
   const [servantDetail, setServantDetail] = useState(null);
-
-  // Shared loading/error state
+  const [selectedServantNpDetails, setSelectedServantNpDetails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState('');
-
-  // Party tab starts with one slot by default.
   const [partySlots, setPartySlots] = useState([createEmptyPartySlot()]);
 
   useEffect(() => {
@@ -56,10 +36,8 @@ function App() {
         throw new Error('Failed to load Atlas Academy data.');
       }
 
-      const servantsJson = await servantsResponse.json();
-      const ceJson = await ceResponse.json();
-      setServants(servantsJson);
-      setCraftEssences(ceJson);
+      setServants(await servantsResponse.json());
+      setCraftEssences(await ceResponse.json());
     } catch (err) {
       setError(err.message || 'Failed to load data.');
     } finally {
@@ -67,10 +45,10 @@ function App() {
     }
   }
 
-  // Fetch detailed servant data when the selected servant changes.
   useEffect(() => {
     if (!selectedServantId) {
       setServantDetail(null);
+      setSelectedServantNpDetails([]);
       return;
     }
 
@@ -83,6 +61,9 @@ function App() {
         }
         const detail = await response.json();
         setServantDetail(detail);
+
+        const npDetails = await fetchNoblePhantasmDetailsByIds((detail.noblePhantasms || []).map((np) => np.id));
+        setSelectedServantNpDetails(npDetails);
       } catch (err) {
         setError(err.message || 'Failed to load servant details.');
       } finally {
@@ -134,24 +115,17 @@ function App() {
   }, [selectedSkillIndex, servantDetail]);
 
   const noblePhantasmSummaries = useMemo(() => {
-    return (servantDetail?.noblePhantasms || []).map((np) => {
+    const npSource = selectedServantNpDetails.length > 0 ? selectedServantNpDetails : (servantDetail?.noblePhantasms || []);
+    return npSource.map((np) => {
       const summary = summarizeFunctions(np.functions || []);
       return `${safeName(np.name)} (${np.card || 'Unknown card'}): ${summary}`;
     });
-  }, [servantDetail]);
+  }, [servantDetail, selectedServantNpDetails]);
 
   function addPartySlot() {
     setPartySlots((current) => [...current, createEmptyPartySlot()]);
   }
 
-  /**
-   * Update one field in one party slot.
-   *
-   * Design choice:
-   * - when class changes => reset servant (to avoid stale mismatched class/servant)
-   * - when servant changes => fetch detail and reset CE detail cache for slot
-   * - when CE changes => fetch CE detail
-   */
   function updatePartySlot(index, field, value) {
     setPartySlots((current) => current.map((slot, slotIndex) => {
       if (slotIndex !== index) return slot;
@@ -162,6 +136,7 @@ function App() {
           className: value,
           servantId: '',
           servantDetail: null,
+          noblePhantasmDetails: [],
           level: 1,
           npLevel: 1,
           npUpgradeCount: 0,
@@ -175,6 +150,7 @@ function App() {
           ...slot,
           servantId: value,
           servantDetail: null,
+          noblePhantasmDetails: [],
           level: 1,
           npLevel: 1,
           npUpgradeCount: 0,
@@ -184,11 +160,7 @@ function App() {
       }
 
       if (field === 'craftEssenceId') {
-        return {
-          ...slot,
-          craftEssenceId: value,
-          craftEssenceDetail: null
-        };
+        return { ...slot, craftEssenceId: value, craftEssenceDetail: null };
       }
 
       return { ...slot, [field]: value };
@@ -211,9 +183,10 @@ function App() {
         throw new Error('Failed to load party servant details.');
       }
       const detail = await response.json();
+      const npDetails = await fetchNoblePhantasmDetailsByIds((detail.noblePhantasms || []).map((np) => np.id));
 
       setPartySlots((current) => current.map((slot, index) =>
-        index === slotIndex ? { ...slot, servantDetail: detail } : slot
+        index === slotIndex ? { ...slot, servantDetail: detail, noblePhantasmDetails: npDetails } : slot
       ));
     } catch (err) {
       setError(err.message || 'Failed to load party servant details.');
@@ -235,6 +208,19 @@ function App() {
       ));
     } catch (err) {
       setError(err.message || 'Failed to load craft essence details.');
+    }
+  }
+
+  async function fetchNoblePhantasmDetailsByIds(npIds) {
+    const validIds = (npIds || []).filter((id) => id != null);
+    if (validIds.length === 0) return [];
+
+    try {
+      const responses = await Promise.all(validIds.map((id) => fetch(`/api/noble-phantasms/${id}`)));
+      const okResponses = responses.filter((response) => response.ok);
+      return Promise.all(okResponses.map((response) => response.json()));
+    } catch (err) {
+      return [];
     }
   }
 
@@ -291,6 +277,7 @@ function createEmptyPartySlot() {
     fou: false,
     goldenFou: false,
     servantDetail: null,
+    noblePhantasmDetails: [],
     craftEssenceDetail: null
   };
 }
@@ -317,28 +304,16 @@ function ServantsTab(props) {
           <h2>{props.servantDetail.name}</h2>
 
           <div className="grid">
-            <div>
-              <label>Class</label>
-              <div>{props.servantDetail.className}</div>
-            </div>
-            <div>
-              <label>Rarity</label>
-              <div>{props.servantDetail.rarity}★</div>
-            </div>
+            <div><label>Class</label><div>{props.servantDetail.className}</div></div>
+            <div><label>Rarity</label><div>{props.servantDetail.rarity}★</div></div>
             <div>
               <label>Level</label>
               <select value={props.selectedLevel} onChange={(event) => props.setSelectedLevel(Number(event.target.value))}>
                 {levelOptions.map((level) => <option key={level} value={level}>{level}</option>)}
               </select>
             </div>
-            <div>
-              <label>ATK at selected level</label>
-              <div>{props.displayedAtk}</div>
-            </div>
-            <div>
-              <label>HP at selected level</label>
-              <div>{props.displayedHp}</div>
-            </div>
+            <div><label>ATK at selected level</label><div>{props.displayedAtk}</div></div>
+            <div><label>HP at selected level</label><div>{props.displayedHp}</div></div>
           </div>
 
           <h3>Skill level table</h3>
@@ -354,42 +329,24 @@ function ServantsTab(props) {
           {props.selectedSkillTable.rows.length > 0 ? (
             <div className="table-wrap">
               <table className="table">
-                <thead>
-                <tr>
-                  <th>Level</th>
-                  {props.selectedSkillTable.columns.map((column) => <th key={column}>{column}</th>)}
-                </tr>
-                </thead>
+                <thead><tr><th>Level</th>{props.selectedSkillTable.columns.map((column) => <th key={column}>{column}</th>)}</tr></thead>
                 <tbody>
                 {props.selectedSkillTable.rows.map((row) => (
-                  <tr key={row.level}>
-                    <td>{row.level}</td>
-                    {props.selectedSkillTable.columns.map((column) => <td key={column}>{row.values[column] || '-'}</td>)}
-                  </tr>
+                  <tr key={row.level}><td>{row.level}</td>{props.selectedSkillTable.columns.map((column) => <td key={column}>{row.values[column] || '-'}</td>)}</tr>
                 ))}
                 </tbody>
               </table>
             </div>
           ) : <p className="muted">No level-based skill values were found for this skill.</p>}
 
-          <h3>Noble Phantasms</h3>
-          <ul>
-            {props.noblePhantasmSummaries.map((summary) => <li key={summary}>{summary}</li>)}
-          </ul>
+          <h3>Noble Phantasms (Atlas Academy NP API)</h3>
+          <ul>{props.noblePhantasmSummaries.map((summary) => <li key={summary}>{summary}</li>)}</ul>
         </div>
       )}
     </>
   );
 }
 
-/**
- * Party tab now has richer slot-level controls:
- * - servant level
- * - NP level
- * - NP upgrades (up to 2)
- * - Fou / Golden Fou toggles
- * - CE stats/effects
- */
 function PartyTab({ servants, craftEssences, partySlots, updatePartySlot, addPartySlot }) {
   const classOptions = [...new Set(servants.map((servant) => servant.className).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   const levelOptions = Array.from({ length: MAX_LEVEL }, (_, index) => index + 1);
@@ -399,31 +356,17 @@ function PartyTab({ servants, craftEssences, partySlots, updatePartySlot, addPar
       <p className="muted">Choose class → servant → CE, then customize level/NP/Fou settings for each party member.</p>
 
       {partySlots.map((slot, index) => {
-        const availableServants = slot.className
-          ? servants.filter((servant) => servant.className === slot.className)
-          : [];
+        const availableServants = slot.className ? servants.filter((servant) => servant.className === slot.className) : [];
 
-        const servantAtk = resolveStatForLevel(
-          slot.level,
-          slot.servantDetail?.atkGrowth,
-          slot.servantDetail?.atkBase,
-          slot.servantDetail?.atkMax,
-          slot.servantDetail?.lvMax
-        );
-        const servantHp = resolveStatForLevel(
-          slot.level,
-          slot.servantDetail?.hpGrowth,
-          slot.servantDetail?.hpBase,
-          slot.servantDetail?.hpMax,
-          slot.servantDetail?.lvMax
-        );
+        const servantAtk = resolveStatForLevel(slot.level, slot.servantDetail?.atkGrowth, slot.servantDetail?.atkBase, slot.servantDetail?.atkMax, slot.servantDetail?.lvMax);
+        const servantHp = resolveStatForLevel(slot.level, slot.servantDetail?.hpGrowth, slot.servantDetail?.hpBase, slot.servantDetail?.hpMax, slot.servantDetail?.lvMax);
 
         const fouBonus = (slot.fou ? 1000 : 0) + (slot.goldenFou ? 1000 : 0);
         const totalAtkWithFou = servantAtk + fouBonus;
         const totalHpWithFou = servantHp + fouBonus;
 
         const npModifier = computeNpDamageModifier(slot.npLevel, slot.npUpgradeCount);
-        const npCardType = safeName(slot.servantDetail?.noblePhantasms?.[0]?.card);
+        const npCardType = safeName(slot.noblePhantasmDetails?.[0]?.card || slot.servantDetail?.noblePhantasms?.[0]?.card);
 
         const ceAtk = resolveCeStat(slot.craftEssenceDetail?.atkBase, slot.craftEssenceDetail?.atkMax);
         const ceHp = resolveCeStat(slot.craftEssenceDetail?.hpBase, slot.craftEssenceDetail?.hpMax);
@@ -441,7 +384,6 @@ function PartyTab({ servants, craftEssences, partySlots, updatePartySlot, addPar
                   {classOptions.map((classOption) => <option key={classOption} value={classOption}>{classOption}</option>)}
                 </select>
               </div>
-
               <div>
                 <label>Servant</label>
                 <select value={slot.servantId} onChange={(event) => updatePartySlot(index, 'servantId', event.target.value)}>
@@ -449,15 +391,12 @@ function PartyTab({ servants, craftEssences, partySlots, updatePartySlot, addPar
                   {availableServants.map((servant) => <option key={servant.id} value={servant.id}>{servant.name}</option>)}
                 </select>
               </div>
-
               <div>
                 <label>Craft Essence</label>
                 <select value={slot.craftEssenceId} onChange={(event) => updatePartySlot(index, 'craftEssenceId', event.target.value)}>
                   <option value="">-- Select craft essence --</option>
                   {craftEssences.map((craftEssence) => (
-                    <option key={craftEssence.id} value={craftEssence.id}>
-                      {craftEssence.name}{craftEssence.rarity ? ` (${craftEssence.rarity}★)` : ''}
-                    </option>
+                    <option key={craftEssence.id} value={craftEssence.id}>{craftEssence.name}{craftEssence.rarity ? ` (${craftEssence.rarity}★)` : ''}</option>
                   ))}
                 </select>
               </div>
@@ -465,7 +404,7 @@ function PartyTab({ servants, craftEssences, partySlots, updatePartySlot, addPar
 
             {slot.servantDetail && (
               <>
-                <h3>Servant Stats & NP Settings</h3>
+                <h3>Servant Stats & NP Settings (NP data from NP API)</h3>
                 <div className="grid">
                   <div>
                     <label>Servant Level</label>
@@ -473,20 +412,16 @@ function PartyTab({ servants, craftEssences, partySlots, updatePartySlot, addPar
                       {levelOptions.map((level) => <option key={level} value={level}>{level}</option>)}
                     </select>
                   </div>
-
                   <div>
                     <label>NP Level</label>
                     <select value={slot.npLevel} onChange={(event) => updatePartySlot(index, 'npLevel', Number(event.target.value))}>
                       {[1, 2, 3, 4, 5].map((npLevel) => <option key={npLevel} value={npLevel}>{npLevel}</option>)}
                     </select>
                   </div>
-
                   <div>
                     <label>NP Upgrades Applied</label>
                     <select value={slot.npUpgradeCount} onChange={(event) => updatePartySlot(index, 'npUpgradeCount', Number(event.target.value))}>
-                      <option value={0}>0</option>
-                      <option value={1}>1</option>
-                      <option value={2}>2</option>
+                      <option value={0}>0</option><option value={1}>1</option><option value={2}>2</option>
                     </select>
                   </div>
                 </div>
@@ -496,7 +431,6 @@ function PartyTab({ servants, craftEssences, partySlots, updatePartySlot, addPar
                     <input type="checkbox" checked={slot.fou} onChange={(event) => updatePartySlot(index, 'fou', event.target.checked)} />
                     Fou'd (+1000 ATK/HP)
                   </label>
-
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                     <input type="checkbox" checked={slot.goldenFou} onChange={(event) => updatePartySlot(index, 'goldenFou', event.target.checked)} />
                     Golden Fou'd (+1000 additional ATK/HP)
@@ -522,9 +456,7 @@ function PartyTab({ servants, craftEssences, partySlots, updatePartySlot, addPar
                   <div><strong>CE HP:</strong> {ceHp}</div>
                 </div>
                 <ul>
-                  {ceEffects.length > 0
-                    ? ceEffects.map((effect) => <li key={effect}>{effect}</li>)
-                    : <li>No CE effects available.</li>}
+                  {ceEffects.length > 0 ? ceEffects.map((effect) => <li key={effect}>{effect}</li>) : <li>No CE effects available.</li>}
                 </ul>
               </>
             )}
@@ -539,8 +471,6 @@ function PartyTab({ servants, craftEssences, partySlots, updatePartySlot, addPar
 
 function computeNpDamageModifier(npLevel, upgradeCount) {
   const baseModifier = NP_LEVEL_MODIFIERS[npLevel] ?? NP_LEVEL_MODIFIERS[1];
-  // Teaching assumption: each NP upgrade adds +10 percentage points.
-  // This intentionally demonstrates configurable combat modifiers.
   return baseModifier + (Math.max(0, Math.min(2, upgradeCount)) * 10);
 }
 
@@ -551,25 +481,19 @@ function resolveCeStat(baseStat, maxStat) {
 
 function buildSkillLevelRows(functions) {
   if (!functions?.length) return [];
-
   const levelCount = Math.max(...functions.map(inferLevelCount), 0);
   const rows = [];
 
   for (let levelIndex = 0; levelIndex < levelCount; levelIndex += 1) {
     const values = {};
-
     functions.forEach((func) => {
       const extracted = extractLevelValues(func, levelIndex);
       Object.entries(extracted).forEach(([key, value]) => {
-        if (!values[key]) {
-          values[key] = value;
-        }
+        if (!values[key]) values[key] = value;
       });
     });
-
     rows.push({ level: levelIndex + 1, values });
   }
-
   return rows;
 }
 
@@ -581,26 +505,19 @@ function inferLevelCount(func) {
 
 function extractLevelValues(func, levelIndex) {
   const values = {};
-
   [func.svals, func.svals2, func.svals3, func.svals4, func.svals5]
     .filter(Boolean)
     .forEach((group) => {
       if (levelIndex >= group.length) return;
-
       const sval = group[levelIndex];
       Object.entries(sval).forEach(([key, rawValue]) => {
         if (typeof rawValue !== 'number') return;
-
         const normalized = key.toLowerCase();
         if (!isUsefulNumericKey(normalized)) return;
-
         const label = `${humanize(func.funcType || 'Effect')} - ${humanize(key)}`;
-        if (!values[label]) {
-          values[label] = formatValue(normalized, rawValue);
-        }
+        if (!values[label]) values[label] = formatValue(normalized, rawValue);
       });
     });
-
   return values;
 }
 
@@ -610,11 +527,7 @@ function summarizeFunctions(functions) {
   return functions.map((func) => {
     const summaryValues = extractLevelValues(func, 0);
     const entries = Object.entries(summaryValues);
-
-    if (!entries.length) {
-      return `${func.funcType || 'Effect'} (no numeric buff values found)`;
-    }
-
+    if (!entries.length) return `${func.funcType || 'Effect'} (no numeric buff values found)`;
     return `${func.funcType || 'Effect'} [${entries.map(([key, value]) => `${key}: ${value}`).join(', ')}]`;
   }).join(' | ');
 }
@@ -636,7 +549,6 @@ function humanize(input) {
 
 function formatValue(key, number) {
   const formatted = Number.isInteger(number) ? String(number) : String(Number(number.toFixed(2)));
-
   return key.includes('rate') || key.includes('chance') || key.endsWith('up') || key.includes('percent')
     ? `${formatted}%`
     : formatted;
@@ -645,9 +557,7 @@ function formatValue(key, number) {
 function resolveStatForLevel(level, growthValues, baseStat, maxStat, lvMax) {
   if (Array.isArray(growthValues) && growthValues.length > 0) {
     const index = Math.max(0, Math.min(level - 1, growthValues.length - 1));
-    if (growthValues[index] != null) {
-      return growthValues[index];
-    }
+    if (growthValues[index] != null) return growthValues[index];
   }
 
   const safeBase = baseStat ?? 0;

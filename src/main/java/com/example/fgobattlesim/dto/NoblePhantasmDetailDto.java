@@ -5,10 +5,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 
 /**
- * Noble Phantasm model.
+ * Detailed Noble Phantasm model fetched from Atlas Academy's NP endpoint.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record NoblePhantasmDto(
+public record NoblePhantasmDetailDto(
         Long id,
         String name,
         String card,
