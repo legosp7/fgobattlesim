@@ -1,3 +1,4 @@
+(() => {
 const { BrowserRouter } = ReactRouterDOM;
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -5,3 +6,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <window.FgoApp />
   </BrowserRouter>
 );
+})();

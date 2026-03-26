@@ -1,3 +1,4 @@
+(() => {
 const { MAX_LEVEL } = window.FgoConstants;
 const { resolveStatForLevel, computeNpDamageModifier, resolveCeStat, safeName } = window.FgoUtils;
 
@@ -121,3 +122,4 @@ window.FgoComponents.PartyTab = function PartyTab({ servants, craftEssences, par
     </>
   );
 };
+})();
