@@ -157,9 +157,11 @@ Loads route param `:id`, fetches servant detail + NP detail, and renders level-a
 ### `frontend/src/pages/PartyPage.tsx`
 Per-slot builder with:
 - class-first servant selection
-- servant level + NP level controls
-- individual skill level dropdowns
-- computed servant stats at chosen level
+- servant level (1-120) + NP level controls
+- Fou / Golden Fou checkboxes (+1000 ATK each)
+- NP upgrade checkboxes (disabled when upgrades are unavailable)
+- individual skill level dropdowns + skill upgrade checkbox
+- computed servant stats at chosen level (including Fou)
 - craft essence detail/effects and combined totals
 
 ---
