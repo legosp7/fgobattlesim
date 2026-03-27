@@ -1,31 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fgoApi } from '../api/fgoApi';
+import { sortClassesInFgoOrder } from '../lib/fgoClassOrder';
 import type { NoblePhantasm, ServantDetail, ServantFunction, ServantSummary } from '../types/fgo';
-
-const FGO_CLASS_ORDER = [
-  'Saber',
-  'Archer',
-  'Lancer',
-  'Rider',
-  'Caster',
-  'Assassin',
-  'Berserker',
-  'Ruler',
-  'Avenger',
-  'Moon Cancer',
-  'Alter Ego',
-  'Foreigner',
-  'Pretender',
-  'Shielder',
-  'Beast',
-] as const;
-
-function classSortIndex(className: string): number {
-  const normalize = (value: string) => value.toLowerCase().replace(/[\s_]/g, '');
-  const index = FGO_CLASS_ORDER.findIndex((name) => normalize(name) === normalize(className));
-  return index === -1 ? Number.MAX_SAFE_INTEGER : index;
-}
 
 function inferLevelCount(func: ServantFunction): number {
   return [func.svals, func.svals2, func.svals3, func.svals4, func.svals5].reduce((max, current) => Math.max(max, current?.length ?? 0), 0);
@@ -94,10 +71,7 @@ export function ServantExplorer({ initialServantId, showBackLink = false }: Prop
         if (data.length === 0) return;
 
         // Initial defaults: class order first, then first servant in class.
-        const classes = [...new Set(data.map((servant) => servant.className))].sort((a, b) => {
-          const diff = classSortIndex(a) - classSortIndex(b);
-          return diff !== 0 ? diff : a.localeCompare(b);
-        });
+        const classes = sortClassesInFgoOrder([...new Set(data.map((servant) => servant.className))]);
 
         const defaultClass = initialServantId
           ? data.find((servant) => servant.id === initialServantId)?.className ?? classes[0]
@@ -117,10 +91,7 @@ export function ServantExplorer({ initialServantId, showBackLink = false }: Prop
   }, [initialServantId]);
 
   const classOptions = useMemo(() => {
-    return [...new Set(servants.map((servant) => servant.className))].sort((a, b) => {
-      const diff = classSortIndex(a) - classSortIndex(b);
-      return diff !== 0 ? diff : a.localeCompare(b);
-    });
+    return sortClassesInFgoOrder([...new Set(servants.map((servant) => servant.className))]);
   }, [servants]);
 
   const servantsInClass = useMemo(() => {

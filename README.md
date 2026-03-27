@@ -155,7 +155,12 @@ Uses a guided selector flow:
 Loads route param `:id`, fetches servant detail + NP detail, and renders level-adjusted stat examples.
 
 ### `frontend/src/pages/PartyPage.tsx`
-Simple party slot builder (servant + craft essence per slot).
+Per-slot builder with:
+- class-first servant selection
+- servant level + NP level controls
+- individual skill level dropdowns
+- computed servant stats at chosen level
+- craft essence detail/effects and combined totals
 
 ---
 
