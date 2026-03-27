@@ -8,6 +8,7 @@ import { Card, CardContent } from '../components/ui/card';
 import { Checkbox } from '../components/ui/checkbox';
 import { Label } from '../components/ui/label';
 import { Select } from '../components/ui/select';
+import type { ServantSkill } from '../types/fgo';
 
 /**
  * Tutorial party builder using reusable shadcn-style UI components.
@@ -58,12 +59,42 @@ function skillUpgradeAvailable(skillName: string): boolean {
   return skillName.includes('+') || skillName.includes('＋') || skillName.toLowerCase().includes('upgrade');
 }
 
+type SkillSlotInfo = {
+  slotNumber: number;
+  base: ServantSkill | null;
+  upgraded: ServantSkill | null;
+};
+
+function buildSkillSlots(skills: ServantSkill[]): SkillSlotInfo[] {
+  const map = new Map<number, SkillSlotInfo>();
+
+  skills.forEach((skill) => {
+    // FGO active skills are slots 1,2,3. We clamp to keep UI consistent.
+    const slotNumber = Math.min(3, Math.max(1, skill.num || 1));
+    const current = map.get(slotNumber) ?? { slotNumber, base: null, upgraded: null };
+    const looksUpgraded = skillUpgradeAvailable(skill.name);
+
+    if (looksUpgraded) current.upgraded = skill;
+    else current.base = skill;
+
+    map.set(slotNumber, current);
+  });
+
+  return [1, 2, 3].map((slotNumber) => {
+    const item = map.get(slotNumber) ?? { slotNumber, base: null, upgraded: null };
+    if (!item.base && item.upgraded) item.base = item.upgraded;
+    return item;
+  });
+}
+
 export function PartyPage(): JSX.Element {
   const [servants, setServants] = useState<ServantSummary[]>([]);
   const [craftEssences, setCraftEssences] = useState<CraftEssenceSummary[]>([]);
   const [slots, setSlots] = useState<PartySlot[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [debugMode, setDebugMode] = useState(false);
+  const isDevMode = import.meta.env.DEV;
 
   useEffect(() => {
     void (async () => {
@@ -88,6 +119,11 @@ export function PartyPage(): JSX.Element {
     [servants],
   );
 
+  useEffect(() => {
+    if (!isDevMode || !debugMode) return;
+    console.log('[PartyPage debug]', JSON.stringify({ slots, servantCount: servants.length, craftEssenceCount: craftEssences.length }, null, 2));
+  }, [isDevMode, debugMode, slots, servants.length, craftEssences.length]);
+
   function updateSlot(index: number, update: Partial<PartySlot>): void {
     setSlots((current) => current.map((slot, i) => (i === index ? { ...slot, ...update } : slot)));
   }
@@ -102,8 +138,8 @@ export function PartyPage(): JSX.Element {
                 ...slot,
                 servantDetail: detail,
                 level: Math.min(slot.level, 120),
-                skillLevels: detail.skills.map(() => 1),
-                skillUpgrades: detail.skills.map(() => false),
+                skillLevels: [1, 1, 1],
+                skillUpgrades: [false, false, false],
                 npUpgrade1: false,
                 npUpgrade2: false,
               }
@@ -196,6 +232,12 @@ export function PartyPage(): JSX.Element {
       <CardContent>
         <h2>Party Builder</h2>
         <p className="muted">Class → Servant → levels + upgrades + CE. Built as a tutorial-style stat sandbox.</p>
+        {isDevMode && (
+          <Label className="checkbox-item">
+            <Checkbox checked={debugMode} onChange={(event) => setDebugMode(event.target.checked)} />
+            Debug mode (log pretty JSON to console)
+          </Label>
+        )}
 
         {slots.map((slot, index) => {
           const servantsInClass = servants
@@ -206,6 +248,7 @@ export function PartyPage(): JSX.Element {
           const npUpgradeAvailableCount = Math.max(0, (servantDetail?.noblePhantasms?.length ?? 1) - 1);
           const npUpgrade1Available = npUpgradeAvailableCount >= 1;
           const npUpgrade2Available = npUpgradeAvailableCount >= 2;
+          const skillSlots = buildSkillSlots(servantDetail?.skills ?? []);
 
           const baseAtk = servantDetail
             ? resolveStatForLevel(slot.level, servantDetail.atkGrowth, servantDetail.atkBase, servantDetail.atkMax, servantDetail.lvMax)
@@ -287,12 +330,26 @@ export function PartyPage(): JSX.Element {
                   </div>
 
                   <div className="skill-row">
-                    {servantDetail.skills.map((skill, skillIndex) => {
-                      const canUpgrade = skillUpgradeAvailable(skill.name);
+                    {skillSlots.map((skillSlot, skillIndex) => {
+                      const baseSkill = skillSlot.base;
+                      const upgradedSkill = skillSlot.upgraded;
+                      const canUpgrade = Boolean(baseSkill && upgradedSkill && upgradedSkill.name !== baseSkill.name);
+                      const shownSkill = slot.skillUpgrades[skillIndex] && canUpgrade ? upgradedSkill : baseSkill;
+
+                      if (!shownSkill) {
+                        return (
+                          <div key={`empty-skill-${skillSlot.slotNumber}`} className="skill-card">
+                            <div className="skill-title">Skill {skillSlot.slotNumber}</div>
+                            <div className="muted">No skill data</div>
+                          </div>
+                        );
+                      }
+
+                      // Only render exactly 3 skill cards (slots 1-3), each with base/upgraded toggle if available.
                       return (
-                        <div key={`${skill.num}-${skill.name}`} className="skill-card">
-                          <div className="skill-title">Skill {skill.num}</div>
-                          <div className="muted">{skill.name}</div>
+                        <div key={`${skillSlot.slotNumber}-${shownSkill.name}`} className="skill-card">
+                          <div className="skill-title">Skill {skillSlot.slotNumber}</div>
+                          <div className="muted">{shownSkill.name}</div>
                           <Select
                             value={slot.skillLevels[skillIndex] ?? 1}
                             onChange={(event) => updateSkillLevel(index, skillIndex, Number(event.target.value))}

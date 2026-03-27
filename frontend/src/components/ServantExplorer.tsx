@@ -60,6 +60,8 @@ export function ServantExplorer({ initialServantId, showBackLink = false }: Prop
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState('');
+  const [debugMode, setDebugMode] = useState(false);
+  const isDevMode = import.meta.env.DEV;
 
   useEffect(() => {
     void (async () => {
@@ -164,6 +166,31 @@ export function ServantExplorer({ initialServantId, showBackLink = false }: Prop
     }
   }, [selectedNpLevel, selectedNpLevelCount]);
 
+  useEffect(() => {
+    if (!isDevMode || !debugMode) return;
+    console.log('[ServantExplorer debug]', JSON.stringify({
+      selectedClass,
+      selectedServantId,
+      selectedSkillIndex,
+      selectedSkillLevel,
+      selectedNpId,
+      selectedNpLevel,
+      servantDetail,
+      noblePhantasms,
+    }, null, 2));
+  }, [
+    isDevMode,
+    debugMode,
+    selectedClass,
+    selectedServantId,
+    selectedSkillIndex,
+    selectedSkillLevel,
+    selectedNpId,
+    selectedNpLevel,
+    servantDetail,
+    noblePhantasms,
+  ]);
+
   if (loading) return <p>Loading servants...</p>;
 
   return (
@@ -173,6 +200,12 @@ export function ServantExplorer({ initialServantId, showBackLink = false }: Prop
       <p className="muted">
         Step 1: choose class in FGO order. Step 2: choose servant from that class. Step 3: inspect skill + NP values by level.
       </p>
+      {isDevMode && (
+        <label className="checkbox-item">
+          <input className="checkbox" type="checkbox" checked={debugMode} onChange={(event) => setDebugMode(event.target.checked)} />
+          Debug mode (log pretty JSON to console)
+        </label>
+      )}
 
       {error && <p className="error">{error}</p>}
 

@@ -150,6 +150,7 @@ Uses a guided selector flow:
 - inspect skill values by selected skill + selected skill level
 - inspect NP values by selected NP upgrade/version + selected NP level
 - show NP card type mapping (1/Arts, 2/Buster, 3/Quick)
+- in Vite dev mode, optional debug checkbox logs pretty JSON state to browser console
 
 ### `frontend/src/pages/ServantDetailPage.tsx`
 Loads route param `:id`, fetches servant detail + NP detail, and renders level-adjusted stat examples.
@@ -163,6 +164,7 @@ Per-slot builder with:
 - individual skill level dropdowns + skill upgrade checkbox
 - computed servant stats at chosen level (including Fou)
 - craft essence detail/effects and combined totals
+- in Vite dev mode, optional debug checkbox logs pretty JSON slot state to browser console
 
 ---
 
