@@ -3,14 +3,14 @@ import { fgoApi } from '../api/fgoApi';
 import { sortClassesInFgoOrder } from '../lib/fgoClassOrder';
 import { resolveStatForLevel } from '../lib/fgoMath';
 import type { CraftEssenceDetail, CraftEssenceSummary, ServantDetail, ServantSummary } from '../types/fgo';
+import { Button } from '../components/ui/button';
+import { Card, CardContent } from '../components/ui/card';
+import { Checkbox } from '../components/ui/checkbox';
+import { Label } from '../components/ui/label';
+import { Select } from '../components/ui/select';
 
 /**
- * Tutorial party builder (shadcn-inspired styling with native controls):
- * - class + servant selectors side-by-side
- * - servant level up to 120
- * - Fou / Golden Fou checkboxes
- * - NP upgrade checkboxes (disabled when unavailable)
- * - skills displayed in a row with level selector + upgrade checkbox
+ * Tutorial party builder using reusable shadcn-style UI components.
  */
 type PartySlot = {
   className: string;
@@ -55,8 +55,6 @@ function createEmptySlot(defaultClassName: string): PartySlot {
 }
 
 function skillUpgradeAvailable(skillName: string): boolean {
-  // Tutorial heuristic: Atlas servant detail DTO doesn't expose explicit strengthen flags,
-  // so we infer upgrade availability from common naming patterns.
   return skillName.includes('+') || skillName.includes('＋') || skillName.toLowerCase().includes('upgrade');
 }
 
@@ -194,222 +192,192 @@ export function PartyPage(): JSX.Element {
   if (error) return <p className="error">{error}</p>;
 
   return (
-    <div className="card card-elevated">
-      <h2>Party Builder</h2>
-      <p className="muted">Class → Servant → levels + upgrades + CE. Built as a tutorial-style stat sandbox.</p>
+    <Card className="card-elevated">
+      <CardContent>
+        <h2>Party Builder</h2>
+        <p className="muted">Class → Servant → levels + upgrades + CE. Built as a tutorial-style stat sandbox.</p>
 
-      {slots.map((slot, index) => {
-        const servantsInClass = servants
-          .filter((servant) => servant.className === slot.className)
-          .sort((a, b) => b.rarity - a.rarity || a.name.localeCompare(b.name));
+        {slots.map((slot, index) => {
+          const servantsInClass = servants
+            .filter((servant) => servant.className === slot.className)
+            .sort((a, b) => b.rarity - a.rarity || a.name.localeCompare(b.name));
 
-        const servantDetail = slot.servantDetail;
-        const npUpgradeAvailableCount = Math.max(0, (servantDetail?.noblePhantasms?.length ?? 1) - 1);
-        const npUpgrade1Available = npUpgradeAvailableCount >= 1;
-        const npUpgrade2Available = npUpgradeAvailableCount >= 2;
+          const servantDetail = slot.servantDetail;
+          const npUpgradeAvailableCount = Math.max(0, (servantDetail?.noblePhantasms?.length ?? 1) - 1);
+          const npUpgrade1Available = npUpgradeAvailableCount >= 1;
+          const npUpgrade2Available = npUpgradeAvailableCount >= 2;
 
-        const baseAtk = servantDetail
-          ? resolveStatForLevel(slot.level, servantDetail.atkGrowth, servantDetail.atkBase, servantDetail.atkMax, servantDetail.lvMax)
-          : 0;
-        const fouAtkBonus = (slot.fou ? 1000 : 0) + (slot.goldenFou ? 1000 : 0);
-        const finalAtk = baseAtk + fouAtkBonus;
+          const baseAtk = servantDetail
+            ? resolveStatForLevel(slot.level, servantDetail.atkGrowth, servantDetail.atkBase, servantDetail.atkMax, servantDetail.lvMax)
+            : 0;
+          const fouAtkBonus = (slot.fou ? 1000 : 0) + (slot.goldenFou ? 1000 : 0);
+          const finalAtk = baseAtk + fouAtkBonus;
 
-        const baseHp = servantDetail
-          ? resolveStatForLevel(slot.level, servantDetail.hpGrowth, servantDetail.hpBase, servantDetail.hpMax, servantDetail.lvMax)
-          : 0;
+          const baseHp = servantDetail
+            ? resolveStatForLevel(slot.level, servantDetail.hpGrowth, servantDetail.hpBase, servantDetail.hpMax, servantDetail.lvMax)
+            : 0;
 
-        const ceAtk = slot.craftEssenceDetail?.atkMax ?? slot.craftEssenceDetail?.atkBase ?? 0;
-        const ceHp = slot.craftEssenceDetail?.hpMax ?? slot.craftEssenceDetail?.hpBase ?? 0;
+          const ceAtk = slot.craftEssenceDetail?.atkMax ?? slot.craftEssenceDetail?.atkBase ?? 0;
+          const ceHp = slot.craftEssenceDetail?.hpMax ?? slot.craftEssenceDetail?.hpBase ?? 0;
 
-        const npMultiplier =
-          (NP_LEVEL_MULTIPLIERS[slot.npLevel] ?? NP_LEVEL_MULTIPLIERS[1]) +
-          (slot.npUpgrade1 ? 100 : 0) +
-          (slot.npUpgrade2 ? 100 : 0);
+          const npMultiplier =
+            (NP_LEVEL_MULTIPLIERS[slot.npLevel] ?? NP_LEVEL_MULTIPLIERS[1]) +
+            (slot.npUpgrade1 ? 100 : 0) +
+            (slot.npUpgrade2 ? 100 : 0);
 
-        return (
-          <div key={index} className="slot slot-panel">
-            <h3>Slot {index + 1}</h3>
+          return (
+            <div key={index} className="slot slot-panel">
+              <h3>Slot {index + 1}</h3>
 
-            <div className="row-2">
-              <div>
-                <label>Class</label>
-                <select className="input" value={slot.className} onChange={(event) => onClassChange(index, event.target.value)}>
-                  {classOptions.map((className) => (
-                    <option key={className} value={className}>{className}</option>
-                  ))}
-                </select>
+              <div className="row-2">
+                <div>
+                  <Label>Class</Label>
+                  <Select value={slot.className} onChange={(event) => onClassChange(index, event.target.value)}>
+                    {classOptions.map((className) => (
+                      <option key={className} value={className}>{className}</option>
+                    ))}
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Servant</Label>
+                  <Select
+                    value={slot.servantId ?? ''}
+                    onChange={(event) => onServantChange(index, event.target.value ? Number(event.target.value) : null)}
+                  >
+                    <option value="">-- choose servant --</option>
+                    {servantsInClass.map((servant) => (
+                      <option key={servant.id} value={servant.id}>
+                        {servant.name} [{servant.id}]
+                      </option>
+                    ))}
+                  </Select>
+                </div>
               </div>
 
-              <div>
-                <label>Servant</label>
-                <select
-                  className="input"
-                  value={slot.servantId ?? ''}
-                  onChange={(event) => onServantChange(index, event.target.value ? Number(event.target.value) : null)}
-                >
-                  <option value="">-- choose servant --</option>
-                  {servantsInClass.map((servant) => (
-                    <option key={servant.id} value={servant.id}>
-                      {servant.name} [{servant.id}]
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {servantDetail && (
-              <>
-                <div className="row-3">
-                  <div>
-                    <label>Servant ATK</label>
-                    <input className="input" value={finalAtk} readOnly />
-                  </div>
-                  <div>
-                    <label>Level</label>
-                    <select className="input" value={slot.level} onChange={(event) => updateSlot(index, { level: Number(event.target.value) })}>
-                      {Array.from({ length: 120 }, (_, i) => i + 1).map((level) => (
-                        <option key={level} value={level}>Lv {level}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label>NP Multiplier</label>
-                    <div className="input input-inline">
-                      <span>{npMultiplier}</span>
-                      <span>%</span>
+              {servantDetail && (
+                <>
+                  <div className="row-3">
+                    <div>
+                      <Label>Servant ATK</Label>
+                      <input className="input" value={finalAtk} readOnly />
+                    </div>
+                    <div>
+                      <Label>Level</Label>
+                      <Select value={slot.level} onChange={(event) => updateSlot(index, { level: Number(event.target.value) })}>
+                        {Array.from({ length: 120 }, (_, i) => i + 1).map((level) => (
+                          <option key={level} value={level}>Lv {level}</option>
+                        ))}
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>NP Multiplier</Label>
+                      <div className="input input-inline">
+                        <span>{npMultiplier}</span>
+                        <span>%</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="checkbox-row">
-                  <label className="checkbox-item">
-                    <input type="checkbox" checked={slot.fou} onChange={(event) => updateSlot(index, { fou: event.target.checked })} />
-                    Fou
-                  </label>
-                  <label className="checkbox-item">
-                    <input
-                      type="checkbox"
-                      checked={slot.goldenFou}
-                      onChange={(event) => updateSlot(index, { goldenFou: event.target.checked })}
-                    />
-                    Golden Fou
-                  </label>
-                  <label className={`checkbox-item ${!npUpgrade1Available ? 'checkbox-disabled' : ''}`}>
-                    <input
-                      type="checkbox"
-                      checked={slot.npUpgrade1}
-                      disabled={!npUpgrade1Available}
-                      onChange={(event) => updateSlot(index, { npUpgrade1: event.target.checked })}
-                    />
-                    NP Upgrade
-                  </label>
-                  <label className={`checkbox-item ${!npUpgrade2Available ? 'checkbox-disabled' : ''}`}>
-                    <input
-                      type="checkbox"
-                      checked={slot.npUpgrade2}
-                      disabled={!npUpgrade2Available}
-                      onChange={(event) => updateSlot(index, { npUpgrade2: event.target.checked })}
-                    />
-                    2nd NP Upgrade
-                  </label>
-                </div>
+                  <div className="checkbox-row">
+                    <Label className="checkbox-item"><Checkbox checked={slot.fou} onChange={(event) => updateSlot(index, { fou: event.target.checked })} />Fou</Label>
+                    <Label className="checkbox-item"><Checkbox checked={slot.goldenFou} onChange={(event) => updateSlot(index, { goldenFou: event.target.checked })} />Golden Fou</Label>
+                    <Label className={`checkbox-item ${!npUpgrade1Available ? 'checkbox-disabled' : ''}`}><Checkbox checked={slot.npUpgrade1} disabled={!npUpgrade1Available} onChange={(event) => updateSlot(index, { npUpgrade1: event.target.checked })} />NP Upgrade</Label>
+                    <Label className={`checkbox-item ${!npUpgrade2Available ? 'checkbox-disabled' : ''}`}><Checkbox checked={slot.npUpgrade2} disabled={!npUpgrade2Available} onChange={(event) => updateSlot(index, { npUpgrade2: event.target.checked })} />2nd NP Upgrade</Label>
+                  </div>
 
-                <div className="skill-row">
-                  {servantDetail.skills.map((skill, skillIndex) => {
-                    const canUpgrade = skillUpgradeAvailable(skill.name);
-                    return (
-                      <div key={`${skill.num}-${skill.name}`} className="skill-card">
-                        <div className="skill-title">Skill {skill.num}</div>
-                        <div className="muted">{skill.name}</div>
-                        <select
-                          className="input"
-                          value={slot.skillLevels[skillIndex] ?? 1}
-                          onChange={(event) => updateSkillLevel(index, skillIndex, Number(event.target.value))}
-                        >
-                          {Array.from({ length: 10 }, (_, i) => i + 1).map((level) => (
-                            <option key={level} value={level}>Lv {level}</option>
-                          ))}
-                        </select>
-                        <label className={`checkbox-item ${!canUpgrade ? 'checkbox-disabled' : ''}`}>
-                          <input
-                            type="checkbox"
-                            checked={slot.skillUpgrades[skillIndex] ?? false}
-                            disabled={!canUpgrade}
-                            onChange={(event) => updateSkillUpgrade(index, skillIndex, event.target.checked)}
-                          />
-                          Upgraded
-                        </label>
-                      </div>
-                    );
-                  })}
-                </div>
+                  <div className="skill-row">
+                    {servantDetail.skills.map((skill, skillIndex) => {
+                      const canUpgrade = skillUpgradeAvailable(skill.name);
+                      return (
+                        <div key={`${skill.num}-${skill.name}`} className="skill-card">
+                          <div className="skill-title">Skill {skill.num}</div>
+                          <div className="muted">{skill.name}</div>
+                          <Select
+                            value={slot.skillLevels[skillIndex] ?? 1}
+                            onChange={(event) => updateSkillLevel(index, skillIndex, Number(event.target.value))}
+                          >
+                            {Array.from({ length: 10 }, (_, i) => i + 1).map((level) => (
+                              <option key={level} value={level}>Lv {level}</option>
+                            ))}
+                          </Select>
+                          <Label className={`checkbox-item ${!canUpgrade ? 'checkbox-disabled' : ''}`}>
+                            <Checkbox
+                              checked={slot.skillUpgrades[skillIndex] ?? false}
+                              disabled={!canUpgrade}
+                              onChange={(event) => updateSkillUpgrade(index, skillIndex, event.target.checked)}
+                            />
+                            Upgraded
+                          </Label>
+                        </div>
+                      );
+                    })}
+                  </div>
 
-                <ul>
-                  <li>Servant HP at Lv {slot.level}: {baseHp}</li>
-                  <li>Servant ATK at Lv {slot.level} (with Fou): {finalAtk}</li>
-                  <li>Selected NP Level: NP{slot.npLevel}</li>
-                </ul>
-              </>
-            )}
+                  <ul>
+                    <li>Servant HP at Lv {slot.level}: {baseHp}</li>
+                    <li>Servant ATK at Lv {slot.level} (with Fou): {finalAtk}</li>
+                    <li>Selected NP Level: NP{slot.npLevel}</li>
+                  </ul>
+                </>
+              )}
 
-            <div>
-              <label>NP Level</label>
-              <select className="input" value={slot.npLevel} onChange={(event) => updateSlot(index, { npLevel: Number(event.target.value) })}>
-                {[1, 2, 3, 4, 5].map((npLevel) => (
-                  <option key={npLevel} value={npLevel}>NP{npLevel}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label>Craft Essence</label>
-              <select
-                className="input"
-                value={slot.craftEssenceId ?? ''}
-                onChange={(event) => onCraftEssenceChange(index, event.target.value ? Number(event.target.value) : null)}
-              >
-                <option value="">-- choose craft essence --</option>
-                {craftEssences.map((ce) => (
-                  <option key={ce.id} value={ce.id}>
-                    {ce.name} ({ce.rarity}★)
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {slot.craftEssenceDetail && (
-              <div className="ce-panel">
-                <h4>Craft Essence Information</h4>
-                <ul>
-                  <li>Name: {slot.craftEssenceDetail.name}</li>
-                  <li>ATK: {ceAtk}</li>
-                  <li>HP: {ceHp}</li>
-                </ul>
-                <p><strong>Effects</strong></p>
-                <ul>
-                  {slot.craftEssenceDetail.skills.length > 0 ? (
-                    slot.craftEssenceDetail.skills.map((skill) => (
-                      <li key={`${skill.name}-${skill.detail}`}>
-                        {skill.name}: {skill.detail}
-                      </li>
-                    ))
-                  ) : (
-                    <li>No craft essence effects listed.</li>
-                  )}
-                </ul>
+              <div>
+                <Label>NP Level</Label>
+                <Select value={slot.npLevel} onChange={(event) => updateSlot(index, { npLevel: Number(event.target.value) })}>
+                  {[1, 2, 3, 4, 5].map((npLevel) => (
+                    <option key={npLevel} value={npLevel}>NP{npLevel}</option>
+                  ))}
+                </Select>
               </div>
-            )}
 
-            <p>
-              Total with CE: <strong>ATK {finalAtk + ceAtk}</strong> / <strong>HP {baseHp + ceHp}</strong>
-            </p>
-          </div>
-        );
-      })}
+              <div>
+                <Label>Craft Essence</Label>
+                <Select
+                  value={slot.craftEssenceId ?? ''}
+                  onChange={(event) => onCraftEssenceChange(index, event.target.value ? Number(event.target.value) : null)}
+                >
+                  <option value="">-- choose craft essence --</option>
+                  {craftEssences.map((ce) => (
+                    <option key={ce.id} value={ce.id}>
+                      {ce.name} ({ce.rarity}★)
+                    </option>
+                  ))}
+                </Select>
+              </div>
 
-      <button className="button" type="button" onClick={addSlot}>
-        Add Slot
-      </button>
-    </div>
+              {slot.craftEssenceDetail && (
+                <div className="ce-panel">
+                  <h4>Craft Essence Information</h4>
+                  <ul>
+                    <li>Name: {slot.craftEssenceDetail.name}</li>
+                    <li>ATK: {ceAtk}</li>
+                    <li>HP: {ceHp}</li>
+                  </ul>
+                  <p><strong>Effects</strong></p>
+                  <ul>
+                    {slot.craftEssenceDetail.skills.length > 0 ? (
+                      slot.craftEssenceDetail.skills.map((skill) => (
+                        <li key={`${skill.name}-${skill.detail}`}>
+                          {skill.name}: {skill.detail}
+                        </li>
+                      ))
+                    ) : (
+                      <li>No craft essence effects listed.</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+
+              <p>
+                Total with CE: <strong>ATK {finalAtk + ceAtk}</strong> / <strong>HP {baseHp + ceHp}</strong>
+              </p>
+            </div>
+          );
+        })}
+
+        <Button type="button" onClick={addSlot}>Add Slot</Button>
+      </CardContent>
+    </Card>
   );
 }

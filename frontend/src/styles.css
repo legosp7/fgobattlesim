@@ -26,6 +26,12 @@ body {
   margin-top: 1rem;
 }
 
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .card-elevated {
   box-shadow: 0 12px 30px -14px rgba(15, 23, 42, 0.25);
 }
@@ -101,7 +107,8 @@ body {
 }
 
 .input,
-.button,
+.select,
+.btn,
 select,
 button,
 input {
@@ -125,10 +132,16 @@ input {
   align-items: center;
 }
 
-.button,
+.btn,
 button {
   cursor: pointer;
   padding: 0.55rem 0.9rem;
+}
+
+.btn {
+  background: hsl(222 85% 54%);
+  color: white;
+  border-color: hsl(222 75% 46%);
 }
 
 .checkbox-row {
@@ -158,6 +171,24 @@ button {
 
 label {
   font-weight: 500;
+}
+
+.label {
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.select {
+  width: 100%;
+  min-height: 2.35rem;
+  padding: 0.45rem 0.65rem;
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
 }
 
 @media (max-width: 760px) {
