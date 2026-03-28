@@ -21,6 +21,7 @@ export type ServantFunction = {
 };
 
 export type ServantSkill = {
+  id?: number;
   num: number;
   name: string;
   functions: ServantFunction[];

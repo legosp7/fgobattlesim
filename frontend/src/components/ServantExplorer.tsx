@@ -61,6 +61,8 @@ export function ServantExplorer({ initialServantId, showBackLink = false }: Prop
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState('');
   const [debugMode, setDebugMode] = useState(false);
+  const [skillDebugLoading, setSkillDebugLoading] = useState(false);
+  const [skillDebugPayload, setSkillDebugPayload] = useState<string>('');
   const isDevMode = import.meta.env.DEV;
 
   useEffect(() => {
@@ -191,6 +193,26 @@ export function ServantExplorer({ initialServantId, showBackLink = false }: Prop
     noblePhantasms,
   ]);
 
+  async function debugFetchSkillApi(): Promise<void> {
+    if (!servantDetail) return;
+    try {
+      setSkillDebugLoading(true);
+      const skillIds = (servantDetail.skills ?? [])
+        .map((skill) => skill.id)
+        .filter((id): id is number => typeof id === 'number');
+
+      const payload = await Promise.all(skillIds.map((id) => fgoApi.getSkill(id)));
+      const pretty = JSON.stringify(payload, null, 2);
+      console.log('[ServantExplorer skill API debug]', pretty);
+      setSkillDebugPayload(pretty);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch skill debug payload.';
+      setError(message);
+    } finally {
+      setSkillDebugLoading(false);
+    }
+  }
+
   if (loading) return <p>Loading servants...</p>;
 
   return (
@@ -201,10 +223,20 @@ export function ServantExplorer({ initialServantId, showBackLink = false }: Prop
         Step 1: choose class in FGO order. Step 2: choose servant from that class. Step 3: inspect skill + NP values by level.
       </p>
       {isDevMode && (
-        <label className="checkbox-item">
-          <input className="checkbox" type="checkbox" checked={debugMode} onChange={(event) => setDebugMode(event.target.checked)} />
-          Debug mode (log pretty JSON to console)
-        </label>
+        <div className="debug-panel">
+          <label className="checkbox-item">
+            <input className="checkbox" type="checkbox" checked={debugMode} onChange={(event) => setDebugMode(event.target.checked)} />
+            Debug mode (log pretty JSON to console)
+          </label>
+          {debugMode && servantDetail && (
+            <button type="button" className="btn" onClick={() => void debugFetchSkillApi()} disabled={skillDebugLoading}>
+              {skillDebugLoading ? 'Loading skill API…' : 'Debug fetch /nice/region/skill payload'}
+            </button>
+          )}
+          {debugMode && skillDebugPayload && (
+            <pre className="debug-output">{skillDebugPayload}</pre>
+          )}
+        </div>
       )}
 
       {error && <p className="error">{error}</p>}

@@ -5,6 +5,7 @@ import com.example.fgobattlesim.dto.CraftEssenceSummaryDto;
 import com.example.fgobattlesim.dto.NoblePhantasmDetailDto;
 import com.example.fgobattlesim.dto.ServantDetailDto;
 import com.example.fgobattlesim.dto.ServantSummaryDto;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.example.fgobattlesim.service.FgoApiService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -67,5 +68,13 @@ public class ApiController {
     @GetMapping("/craft-essences")
     public List<CraftEssenceSummaryDto> craftEssences() {
         return service.getAllCraftEssences();
+    }
+
+    /**
+     * Debug endpoint for raw skill detail data.
+     */
+    @GetMapping("/skills/{id}")
+    public JsonNode skill(@PathVariable Long id) {
+        return service.getSkill(id);
     }
 }

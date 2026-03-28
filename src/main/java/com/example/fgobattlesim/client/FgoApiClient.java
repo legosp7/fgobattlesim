@@ -6,6 +6,7 @@ import com.example.fgobattlesim.dto.NoblePhantasmDetailDto;
 import com.example.fgobattlesim.dto.ServantDetailDto;
 import com.example.fgobattlesim.dto.ServantSummaryDto;
 import com.example.fgobattlesim.exception.ExternalApiException;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -27,6 +28,7 @@ public class FgoApiClient {
     private static final String BASIC_CRAFT_ESSENCE_ENDPOINT = "/export/NA/basic_equip.json";
     private static final String CRAFT_ESSENCE_DETAIL_ENDPOINT = "/nice/NA/equip/{id}";
     private static final String NOBLE_PHANTASM_DETAIL_ENDPOINT = "/nice/NA/NP/{id}";
+    private static final String SKILL_DETAIL_ENDPOINT = "/nice/NA/skill/{id}";
 
     private final RestClient restClient;
 
@@ -90,6 +92,20 @@ public class FgoApiClient {
                     .body(NoblePhantasmDetailDto.class);
         } catch (RestClientException ex) {
             throw new ExternalApiException("Could not fetch noble phantasm details from Atlas Academy API", ex);
+        }
+    }
+
+    /**
+     * Fetches one skill's detailed raw JSON payload.
+     */
+    public JsonNode fetchSkillById(Long id) {
+        try {
+            return restClient.get()
+                    .uri(SKILL_DETAIL_ENDPOINT, id)
+                    .retrieve()
+                    .body(JsonNode.class);
+        } catch (RestClientException ex) {
+            throw new ExternalApiException("Could not fetch skill details from Atlas Academy API", ex);
         }
     }
 

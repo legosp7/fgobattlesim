@@ -12,6 +12,7 @@ import java.util.List;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ServantSkillDto(
+        Long id,
         Integer num,
         String name,
         List<ServantFunctionDto> functions

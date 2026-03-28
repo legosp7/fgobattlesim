@@ -10,6 +10,7 @@ import com.example.fgobattlesim.dto.ServantFunctionDto;
 import com.example.fgobattlesim.dto.ServantSkillDto;
 import com.example.fgobattlesim.dto.ServantSummaryDto;
 import com.example.fgobattlesim.service.FgoApiService;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -96,7 +97,7 @@ class ServantControllerTest {
                 90,
                 List.of(1854, 3000, 4200),
                 List.of(2220, 3600, 5100),
-                List.of(new ServantSkillDto(1, "Charisma", List.of(charismaFn))),
+                List.of(new ServantSkillDto(1001L, 1, "Charisma", List.of(charismaFn))),
                 List.of(new NoblePhantasmDto(5001L, "Excalibur", "BUSTER", List.of(npFn)))
         ));
 
@@ -162,5 +163,15 @@ class ServantControllerTest {
         mockMvc.perform(get("/api/craft-essences"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Kaleidoscope"));
+    }
+
+    @Test
+    void skillApiReturnsRawSkillPayload() throws Exception {
+        when(service.getSkill(77L)).thenReturn(JsonNodeFactory.instance.objectNode().put("id", 77).put("name", "Mind's Eye"));
+
+        mockMvc.perform(get("/api/skills/77"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(77))
+                .andExpect(jsonPath("$.name").value("Mind's Eye"));
     }
 }

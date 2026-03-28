@@ -20,4 +20,5 @@ export const fgoApi = {
   listCraftEssences: () => getJson<CraftEssenceSummary[]>('/api/craft-essences'),
   getCraftEssence: (id: number) => getJson<CraftEssenceDetail>(`/api/craft-essences/${id}`),
   getNoblePhantasm: (id: number) => getJson<NoblePhantasm>(`/api/noble-phantasms/${id}`),
+  getSkill: (id: number) => getJson<unknown>(`/api/skills/${id}`),
 };

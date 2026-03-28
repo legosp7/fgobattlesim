@@ -151,6 +151,7 @@ Uses a guided selector flow:
 - inspect NP values by selected NP upgrade/version + selected NP level
 - show NP card type mapping (1/Arts, 2/Buster, 3/Quick)
 - in Vite dev mode, optional debug checkbox logs pretty JSON state to browser console
+- in debug mode, an extra button fetches raw skill payloads from `/api/skills/{id}` (Atlas `nice/region/skill`) for the selected servant
 
 ### `frontend/src/pages/ServantDetailPage.tsx`
 Loads route param `:id`, fetches servant detail + NP detail, and renders level-adjusted stat examples.

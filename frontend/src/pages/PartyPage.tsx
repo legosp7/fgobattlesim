@@ -55,10 +55,6 @@ function createEmptySlot(defaultClassName: string): PartySlot {
   };
 }
 
-function skillUpgradeAvailable(skillName: string): boolean {
-  return skillName.includes('+') || skillName.includes('＋') || skillName.toLowerCase().includes('upgrade');
-}
-
 type SkillSlotInfo = {
   slotNumber: number;
   base: ServantSkill | null;
@@ -72,10 +68,9 @@ function buildSkillSlots(skills: ServantSkill[]): SkillSlotInfo[] {
     // FGO active skills are slots 1,2,3. We clamp to keep UI consistent.
     const slotNumber = Math.min(3, Math.max(1, skill.num || 1));
     const current = map.get(slotNumber) ?? { slotNumber, base: null, upgraded: null };
-    const looksUpgraded = skillUpgradeAvailable(skill.name);
-
-    if (looksUpgraded) current.upgraded = skill;
-    else current.base = skill;
+    // Requested rule: first skill for a slot is base; later same-num entries are upgrades.
+    if (!current.base) current.base = skill;
+    else if (!current.upgraded) current.upgraded = skill;
 
     map.set(slotNumber, current);
   });
@@ -333,7 +328,7 @@ export function PartyPage(): JSX.Element {
                     {skillSlots.map((skillSlot, skillIndex) => {
                       const baseSkill = skillSlot.base;
                       const upgradedSkill = skillSlot.upgraded;
-                      const canUpgrade = Boolean(baseSkill && upgradedSkill && upgradedSkill.name !== baseSkill.name);
+                      const canUpgrade = Boolean(baseSkill && upgradedSkill);
                       const shownSkill = slot.skillUpgrades[skillIndex] && canUpgrade ? upgradedSkill : baseSkill;
 
                       if (!shownSkill) {

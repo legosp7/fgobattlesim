@@ -6,6 +6,7 @@ import com.example.fgobattlesim.dto.CraftEssenceSummaryDto;
 import com.example.fgobattlesim.dto.NoblePhantasmDetailDto;
 import com.example.fgobattlesim.dto.ServantDetailDto;
 import com.example.fgobattlesim.dto.ServantSummaryDto;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -65,5 +66,12 @@ public class FgoApiService {
      */
     public ServantDetailDto getServant(Long id) {
         return client.fetchServantById(id);
+    }
+
+    /**
+     * Returns raw detail for one skill from Atlas Academy's skill endpoint.
+     */
+    public JsonNode getSkill(Long id) {
+        return client.fetchSkillById(id);
     }
 }
