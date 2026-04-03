@@ -3,10 +3,8 @@ import { AppLayout } from '../components/AppLayout';
 import { PartyPage } from '../pages/PartyPage';
 import { ServantDetailPage } from '../pages/ServantDetailPage';
 import { ServantsPage } from '../pages/ServantsPage';
+import { EnemiesPage } from '../pages/EnemiesPage';
 
-/**
- * Centralized route table for the SPA.
- */
 export function AppRouter(): JSX.Element {
   return (
     <Routes>
@@ -15,6 +13,7 @@ export function AppRouter(): JSX.Element {
         <Route path="/servants" element={<ServantsPage />} />
         <Route path="/servants/:id" element={<ServantDetailPage />} />
         <Route path="/party" element={<PartyPage />} />
+        <Route path="/enemies" element={<EnemiesPage />} />
       </Route>
     </Routes>
   );

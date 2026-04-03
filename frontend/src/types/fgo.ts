@@ -24,6 +24,8 @@ export type ServantSkill = {
   id?: number;
   num: number;
   name: string;
+  detail?: string;
+  coolDown?: number[];
   functions: ServantFunction[];
 };
 
@@ -32,6 +34,11 @@ export type NoblePhantasm = {
   name: string;
   card: string;
   functions: ServantFunction[];
+};
+
+export type Trait = {
+  id: number;
+  name: string;
 };
 
 export type ServantDetail = {
@@ -47,6 +54,7 @@ export type ServantDetail = {
   atkGrowth: number[];
   hpGrowth: number[];
   skills: ServantSkill[];
+  appendSkills: ServantSkill[];
   noblePhantasms: NoblePhantasm[];
 };
 
@@ -70,4 +78,24 @@ export type CraftEssenceDetail = {
   atkMax: number;
   hpMax: number;
   skills: CraftEssenceSkill[];
+};
+
+export type MysticCodeSummary = {
+  id: number;
+  name: string;
+};
+
+export type EnemySummary = {
+  id: number;
+  name: string;
+  className: string;
+};
+
+export type EnemyDetail = {
+  id: number;
+  name: string;
+  className: string;
+  hpBase?: number;
+  atkBase?: number;
+  traits: Trait[];
 };

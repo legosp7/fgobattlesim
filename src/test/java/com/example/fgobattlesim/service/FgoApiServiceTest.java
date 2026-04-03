@@ -13,12 +13,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-/**
- * Unit test for the service layer.
- *
- * <p>Teaching note: this test does not start Spring Boot. It tests only the
- * service class in isolation by mocking the API client.</p>
- */
 @ExtendWith(MockitoExtension.class)
 class FgoApiServiceTest {
 
@@ -29,8 +23,9 @@ class FgoApiServiceTest {
     private FgoApiService service;
 
     @Test
-    void getAllServants_filtersBlankNamesAndSortsAscending() {
+    void getAllServants_filtersNpcAndBlankNamesAndSortsAscending() {
         when(apiClient.fetchServants()).thenReturn(List.of(
+                new ServantSummaryDto(990001L, "NPC Test", 3, "Saber"),
                 new ServantSummaryDto(3L, "zeta", 3, "Saber"),
                 new ServantSummaryDto(2L, "", 4, "Lancer"),
                 new ServantSummaryDto(1L, "Artoria", 5, "Saber")

@@ -1,6 +1,7 @@
 package com.example.fgobattlesim.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ public record ServantDetailDto(
         List<Integer> atkGrowth,
         List<Integer> hpGrowth,
         List<ServantSkillDto> skills,
+        @JsonProperty("appendPassive") List<ServantSkillDto> appendSkills,
         List<NoblePhantasmDto> noblePhantasms
 ) {
 }

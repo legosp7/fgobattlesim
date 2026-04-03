@@ -213,3 +213,13 @@ label {
     grid-template-columns: 1fr;
   }
 }
+
+.btn-secondary {
+  background: hsl(210 40% 96%);
+  color: hsl(222 47% 20%);
+}
+
+details > summary {
+  cursor: pointer;
+  font-weight: 600;
+}

@@ -7,14 +7,16 @@ import java.util.List;
 /**
  * Servant skill model.
  *
- * <p>Each skill has a visible name/number and a list of function blocks that
- * describe what the skill actually does.</p>
+ * <p>We keep description and cooldown so the UI can show tutorial-friendly
+ * details when a learner expands each skill block.</p>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ServantSkillDto(
         Long id,
         Integer num,
         String name,
+        String detail,
+        List<Integer> coolDown,
         List<ServantFunctionDto> functions
 ) {
 }

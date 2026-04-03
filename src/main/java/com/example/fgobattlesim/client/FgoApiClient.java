@@ -2,6 +2,9 @@ package com.example.fgobattlesim.client;
 
 import com.example.fgobattlesim.dto.CraftEssenceDetailDto;
 import com.example.fgobattlesim.dto.CraftEssenceSummaryDto;
+import com.example.fgobattlesim.dto.EnemyDetailDto;
+import com.example.fgobattlesim.dto.EnemySummaryDto;
+import com.example.fgobattlesim.dto.MysticCodeSummaryDto;
 import com.example.fgobattlesim.dto.NoblePhantasmDetailDto;
 import com.example.fgobattlesim.dto.ServantDetailDto;
 import com.example.fgobattlesim.dto.ServantSummaryDto;
@@ -29,6 +32,9 @@ public class FgoApiClient {
     private static final String CRAFT_ESSENCE_DETAIL_ENDPOINT = "/nice/NA/equip/{id}";
     private static final String NOBLE_PHANTASM_DETAIL_ENDPOINT = "/nice/NA/NP/{id}";
     private static final String SKILL_DETAIL_ENDPOINT = "/nice/NA/skill/{id}";
+    private static final String BASIC_ENEMY_ENDPOINT = "/export/NA/basic_enemy.json";
+    private static final String ENEMY_DETAIL_ENDPOINT = "/nice/NA/enemy/{id}";
+    private static final String BASIC_MYSTIC_CODE_ENDPOINT = "/export/NA/basic_mystic_code.json";
 
     private final RestClient restClient;
 
@@ -36,89 +42,78 @@ public class FgoApiClient {
         this.restClient = restClient;
     }
 
-    /**
-     * Fetches servant summary data for dropdown usage.
-     */
     public List<ServantSummaryDto> fetchServants() {
         try {
-            List<ServantSummaryDto> servants = restClient.get()
-                    .uri(BASIC_SERVANT_ENDPOINT)
-                    .retrieve()
-                    // ParameterizedTypeReference is needed because the response is a List<T>.
-                    .body(new ParameterizedTypeReference<>() {});
+            List<ServantSummaryDto> servants = restClient.get().uri(BASIC_SERVANT_ENDPOINT).retrieve().body(new ParameterizedTypeReference<>() {});
             return servants == null ? List.of() : servants;
         } catch (RestClientException ex) {
             throw new ExternalApiException("Could not fetch servant list from Atlas Academy API", ex);
         }
     }
 
-    /**
-     * Fetches craft essence summary data for dropdown usage.
-     */
     public List<CraftEssenceSummaryDto> fetchCraftEssences() {
         try {
-            List<CraftEssenceSummaryDto> craftEssences = restClient.get()
-                    .uri(BASIC_CRAFT_ESSENCE_ENDPOINT)
-                    .retrieve()
-                    .body(new ParameterizedTypeReference<>() {});
+            List<CraftEssenceSummaryDto> craftEssences = restClient.get().uri(BASIC_CRAFT_ESSENCE_ENDPOINT).retrieve().body(new ParameterizedTypeReference<>() {});
             return craftEssences == null ? List.of() : craftEssences;
         } catch (RestClientException ex) {
             throw new ExternalApiException("Could not fetch craft essence list from Atlas Academy API", ex);
         }
     }
 
-    /**
-     * Fetches one craft essence's detailed data.
-     */
+    public List<EnemySummaryDto> fetchEnemies() {
+        try {
+            List<EnemySummaryDto> enemies = restClient.get().uri(BASIC_ENEMY_ENDPOINT).retrieve().body(new ParameterizedTypeReference<>() {});
+            return enemies == null ? List.of() : enemies;
+        } catch (RestClientException ex) {
+            throw new ExternalApiException("Could not fetch enemy list from Atlas Academy API", ex);
+        }
+    }
+
+    public List<MysticCodeSummaryDto> fetchMysticCodes() {
+        try {
+            List<MysticCodeSummaryDto> mysticCodes = restClient.get().uri(BASIC_MYSTIC_CODE_ENDPOINT).retrieve().body(new ParameterizedTypeReference<>() {});
+            return mysticCodes == null ? List.of() : mysticCodes;
+        } catch (RestClientException ex) {
+            // Keep app usable in case Atlas changes this export endpoint.
+            return List.of();
+        }
+    }
+
     public CraftEssenceDetailDto fetchCraftEssenceById(Long id) {
         try {
-            return restClient.get()
-                    .uri(CRAFT_ESSENCE_DETAIL_ENDPOINT, id)
-                    .retrieve()
-                    .body(CraftEssenceDetailDto.class);
+            return restClient.get().uri(CRAFT_ESSENCE_DETAIL_ENDPOINT, id).retrieve().body(CraftEssenceDetailDto.class);
         } catch (RestClientException ex) {
             throw new ExternalApiException("Could not fetch craft essence details from Atlas Academy API", ex);
         }
     }
 
-    /**
-     * Fetches one Noble Phantasm's detailed data from Atlas Academy's NP endpoint.
-     */
     public NoblePhantasmDetailDto fetchNoblePhantasmById(Long id) {
         try {
-            return restClient.get()
-                    .uri(NOBLE_PHANTASM_DETAIL_ENDPOINT, id)
-                    .retrieve()
-                    .body(NoblePhantasmDetailDto.class);
+            return restClient.get().uri(NOBLE_PHANTASM_DETAIL_ENDPOINT, id).retrieve().body(NoblePhantasmDetailDto.class);
         } catch (RestClientException ex) {
             throw new ExternalApiException("Could not fetch noble phantasm details from Atlas Academy API", ex);
         }
     }
 
-    /**
-     * Fetches one skill's detailed raw JSON payload.
-     */
     public JsonNode fetchSkillById(Long id) {
         try {
-            return restClient.get()
-                    .uri(SKILL_DETAIL_ENDPOINT, id)
-                    .retrieve()
-                    .body(JsonNode.class);
+            return restClient.get().uri(SKILL_DETAIL_ENDPOINT, id).retrieve().body(JsonNode.class);
         } catch (RestClientException ex) {
             throw new ExternalApiException("Could not fetch skill details from Atlas Academy API", ex);
         }
     }
 
-    /**
-     * Fetches one servant's detailed data.
-     */
+    public EnemyDetailDto fetchEnemyById(Long id) {
+        try {
+            return restClient.get().uri(ENEMY_DETAIL_ENDPOINT, id).retrieve().body(EnemyDetailDto.class);
+        } catch (RestClientException ex) {
+            throw new ExternalApiException("Could not fetch enemy details from Atlas Academy API", ex);
+        }
+    }
+
     public ServantDetailDto fetchServantById(Long id) {
         try {
-            return restClient.get()
-                    // {id} is expanded by Spring into the actual path value.
-                    .uri(SERVANT_DETAIL_ENDPOINT, id)
-                    .retrieve()
-                    .body(ServantDetailDto.class);
+            return restClient.get().uri(SERVANT_DETAIL_ENDPOINT, id).retrieve().body(ServantDetailDto.class);
         } catch (RestClientException ex) {
             throw new ExternalApiException("Could not fetch servant details from Atlas Academy API", ex);
         }
