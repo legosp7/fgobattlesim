@@ -1,0 +1,225 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  color: hsl(222 47% 11%);
+  background: hsl(220 14% 96%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.container {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.card {
+  background: hsl(0 0% 100%);
+  border: 1px solid hsl(214 32% 91%);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.card-elevated {
+  box-shadow: 0 12px 30px -14px rgba(15, 23, 42, 0.25);
+}
+
+.nav {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.nav a {
+  text-decoration: none;
+  padding: 0.45rem 0.65rem;
+  border-radius: 0.55rem;
+  color: hsl(215 20% 35%);
+  border: 1px solid transparent;
+}
+
+.nav a.active {
+  background: hsl(222 85% 54%);
+  color: white;
+}
+
+.error {
+  color: hsl(0 66% 45%);
+}
+
+.muted {
+  color: hsl(215 16% 46%);
+}
+
+.slot {
+  border-top: 1px solid hsl(214 32% 91%);
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.slot-panel {
+  background: hsl(210 40% 98%);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.row-2,
+.row-3,
+.skill-row,
+.grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.row-2 {
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+}
+
+.row-3 {
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+}
+
+.skill-row {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-top: 0.5rem;
+}
+
+.skill-card {
+  border: 1px solid hsl(214 32% 91%);
+  border-radius: 0.65rem;
+  padding: 0.75rem;
+  background: white;
+}
+
+.skill-title {
+  font-weight: 600;
+}
+
+.input,
+.select,
+.btn,
+select,
+button,
+input {
+  border: 1px solid hsl(214 32% 85%);
+  border-radius: 0.5rem;
+  background: white;
+  font: inherit;
+}
+
+.input,
+select,
+input {
+  width: 100%;
+  min-height: 2.35rem;
+  padding: 0.45rem 0.65rem;
+}
+
+.input-inline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn,
+button {
+  cursor: pointer;
+  padding: 0.55rem 0.9rem;
+}
+
+.btn {
+  background: hsl(222 85% 54%);
+  color: white;
+  border-color: hsl(222 75% 46%);
+}
+
+.checkbox-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin: 0.75rem 0;
+}
+
+.checkbox-item {
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.checkbox-disabled {
+  opacity: 0.45;
+}
+
+.ce-panel {
+  border: 1px solid hsl(214 32% 90%);
+  border-radius: 0.65rem;
+  background: hsl(0 0% 100%);
+  padding: 0.75rem;
+}
+
+label {
+  font-weight: 500;
+}
+
+.label {
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.select {
+  width: 100%;
+  min-height: 2.35rem;
+  padding: 0.45rem 0.65rem;
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
+}
+
+.debug-panel {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0.5rem 0;
+}
+
+.debug-output {
+  max-height: 220px;
+  overflow: auto;
+  background: hsl(222 47% 11%);
+  color: hsl(0 0% 95%);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 760px) {
+  .row-2,
+  .row-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.btn-secondary {
+  background: hsl(210 40% 96%);
+  color: hsl(222 47% 20%);
+}
+
+details > summary {
+  cursor: pointer;
+  font-weight: 600;
+}

@@ -1,0 +1,76 @@
+<!--
+  This Maven build file is the "project recipe" for the whole application.
+
+  If you are new to Spring Boot, read this file like this:
+  1. <parent> gives us Spring Boot's dependency management so we do not need
+     to manually choose versions for every Spring library.
+  2. <dependencies> lists the libraries our code needs.
+  3. <build> configures plugins, such as the one that knows how to run a
+     Spring Boot app.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+      The Spring Boot parent BOM (Bill of Materials) chooses compatible versions
+      of Spring libraries for us. This is one of the biggest conveniences of
+      using Spring Boot.
+    -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.2</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.example</groupId>
+    <artifactId>fgobattlesim</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>fgobattlesim</name>
+    <description>FGO companion app powered by Atlas Academy API</description>
+
+    <properties>
+        <!-- Java 17 is a common, stable target for modern Spring Boot apps. -->
+        <java.version>17</java.version>
+    </properties>
+
+    <dependencies>
+        <!-- Spring MVC, JSON serialization, embedded Tomcat, etc. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!--
+          Kept from earlier iterations. The current UI is React-based, but this
+          dependency is harmless if you want to compare server-side rendering
+          with client-side rendering later while learning.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
+        <!-- JUnit, AssertJ, Spring test utilities, Mockito, etc. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+              This plugin lets us run the app with `mvn spring-boot:run` and
+              package it as an executable jar.
+            -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
