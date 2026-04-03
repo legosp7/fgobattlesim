@@ -65,7 +65,8 @@ public class FgoApiClient {
             List<EnemySummaryDto> enemies = restClient.get().uri(BASIC_ENEMY_ENDPOINT).retrieve().body(new ParameterizedTypeReference<>() {});
             return enemies == null ? List.of() : enemies;
         } catch (RestClientException ex) {
-            throw new ExternalApiException("Could not fetch enemy list from Atlas Academy API", ex);
+            // Keep encounter planner usable even if Atlas changes enemy export paths.
+            return List.of();
         }
     }
 

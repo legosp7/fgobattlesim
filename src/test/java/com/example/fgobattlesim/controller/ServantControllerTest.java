@@ -13,6 +13,7 @@ import com.example.fgobattlesim.dto.ServantFunctionDto;
 import com.example.fgobattlesim.dto.ServantSkillDto;
 import com.example.fgobattlesim.dto.ServantSummaryDto;
 import com.example.fgobattlesim.dto.TraitDto;
+import com.example.fgobattlesim.exception.ExternalApiException;
 import com.example.fgobattlesim.service.FgoApiService;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.junit.jupiter.api.Test;
@@ -83,6 +84,17 @@ class ServantControllerTest {
                 .andExpect(jsonPath("$.skills[0].coolDown[0]").value(7))
                 .andExpect(jsonPath("$.appendSkills[0].name").value("Magic Loading"))
                 .andExpect(jsonPath("$.noblePhantasms[0].name").value("Excalibur"));
+    }
+
+
+    @Test
+    void apiErrorsReturnJsonInsteadOfHtml() throws Exception {
+        when(service.getAllEnemies()).thenThrow(new ExternalApiException("Enemy export unavailable"));
+
+        mockMvc.perform(get("/api/enemies"))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.error").value("External API Error"))
+                .andExpect(jsonPath("$.message").value("Enemy export unavailable"));
     }
 
     @Test
