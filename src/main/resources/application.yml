@@ -1,0 +1,19 @@
+#
+# application.yml is Spring Boot's externalized configuration file.
+# Think of it as the place where you put values that might change
+# between environments without rewriting Java code.
+#
+# Here we keep only a small amount of configuration because this app is
+# still intentionally simple for learning purposes.
+#
+
+fgo:
+  api:
+    # The base URL used by HttpClientConfig when building RestClient.
+    base-url: https://api.atlasacademy.io
+
+spring:
+  thymeleaf:
+    # Thymeleaf is no longer the main UI, but keeping template caching off is
+    # still handy if you experiment with server-rendered templates while learning.
+    cache: false
