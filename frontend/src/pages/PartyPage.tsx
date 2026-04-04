@@ -33,7 +33,16 @@ type PartySlot = {
   craftEssenceDetail: CraftEssenceDetail | null;
 };
 
+type SavedParty = {
+  id: string;
+  name: string;
+  mysticCodeId: number | null;
+  slots: PartySlot[];
+  updatedAt: string;
+};
+
 const NP_LEVEL_MULTIPLIERS: Record<number, number> = { 1: 300, 2: 400, 3: 450, 4: 475, 5: 500 };
+const PARTY_STORAGE_KEY = 'fgo.saved.parties.v1';
 
 function createEmptySlot(defaultClassName: string): PartySlot {
   return {
@@ -95,12 +104,30 @@ function resolveCardType(card: string | number): string {
   return `Unknown (${String(card)})`;
 }
 
+function loadSavedParties(): SavedParty[] {
+  try {
+    const raw = localStorage.getItem(PARTY_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as SavedParty[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistSavedParties(parties: SavedParty[]): void {
+  localStorage.setItem(PARTY_STORAGE_KEY, JSON.stringify(parties));
+}
+
 export function PartyPage(): JSX.Element {
   const [servants, setServants] = useState<ServantSummary[]>([]);
   const [craftEssences, setCraftEssences] = useState<CraftEssenceSummary[]>([]);
   const [mysticCodes, setMysticCodes] = useState<MysticCodeSummary[]>([]);
   const [selectedMysticCodeId, setSelectedMysticCodeId] = useState<number | null>(null);
   const [slots, setSlots] = useState<PartySlot[]>([]);
+  const [partyName, setPartyName] = useState('');
+  const [savedParties, setSavedParties] = useState<SavedParty[]>(loadSavedParties);
+  const [editingPartyId, setEditingPartyId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -193,6 +220,49 @@ export function PartyPage(): JSX.Element {
 
   function addSlot(): void {
     setSlots((current) => [...current, createEmptySlot(classOptions[0] ?? '')]);
+  }
+
+  function resetPartyForm(): void {
+    setPartyName('');
+    setEditingPartyId(null);
+  }
+
+  function onSaveParty(): void {
+    const trimmedName = partyName.trim();
+    if (!trimmedName) {
+      setError('Please enter a party name before saving.');
+      return;
+    }
+
+    const next = [...savedParties];
+    const nowIso = new Date().toISOString();
+    if (editingPartyId) {
+      const index = next.findIndex((party) => party.id === editingPartyId);
+      if (index >= 0) {
+        next[index] = { ...next[index], name: trimmedName, mysticCodeId: selectedMysticCodeId, slots, updatedAt: nowIso };
+      }
+    } else {
+      next.unshift({ id: crypto.randomUUID(), name: trimmedName, mysticCodeId: selectedMysticCodeId, slots, updatedAt: nowIso });
+    }
+    setSavedParties(next);
+    persistSavedParties(next);
+    resetPartyForm();
+    setError('');
+  }
+
+  function onEditParty(party: SavedParty): void {
+    setPartyName(party.name);
+    setSelectedMysticCodeId(party.mysticCodeId);
+    setSlots(party.slots);
+    setEditingPartyId(party.id);
+    setError('');
+  }
+
+  function onDeleteParty(partyId: string): void {
+    const next = savedParties.filter((party) => party.id !== partyId);
+    setSavedParties(next);
+    persistSavedParties(next);
+    if (editingPartyId === partyId) resetPartyForm();
   }
 
   if (loading) return <p>Loading party data...</p>;
@@ -402,12 +472,37 @@ export function PartyPage(): JSX.Element {
       <button type="button" className="btn" onClick={addSlot}>Add another servant to party</button>
 
       <div className="slot">
+        <h3>Party Save</h3>
+        <label>Party Name</label>
+        <input value={partyName} onChange={(event) => setPartyName(event.target.value)} placeholder="Party Name" />
+        <div className="checkbox-row">
+          <button type="button" className="btn" onClick={onSaveParty}>{editingPartyId ? 'Update Party' : 'Save Party'}</button>
+          <button type="button" className="btn btn-secondary" onClick={resetPartyForm}>Clear Name</button>
+        </div>
+      </div>
+
+      <div className="slot">
         <h3>Mystic Code</h3>
         <label>Choose Mystic Code</label>
         <select value={selectedMysticCodeId ?? ''} onChange={(event) => setSelectedMysticCodeId(event.target.value ? Number(event.target.value) : null)}>
           <option value="">-- choose mystic code --</option>
           {mysticCodes.map((mc) => <option key={mc.id} value={mc.id}>{mc.name}</option>)}
         </select>
+      </div>
+
+      <div className="slot">
+        <h3>Saved Parties</h3>
+        {savedParties.length === 0 && <p className="muted">No saved parties yet.</p>}
+        {savedParties.map((party) => (
+          <div className="skill-card" key={party.id}>
+            <strong>{party.name}</strong>
+            <p className="muted">Updated: {new Date(party.updatedAt).toLocaleString()} • Slots: {party.slots.length}</p>
+            <div className="checkbox-row">
+              <button type="button" className="btn btn-secondary" onClick={() => onEditParty(party)}>Edit</button>
+              <button type="button" className="btn btn-secondary" onClick={() => onDeleteParty(party.id)}>Delete</button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

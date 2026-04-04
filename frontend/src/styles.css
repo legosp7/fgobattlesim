@@ -223,3 +223,20 @@ details > summary {
   cursor: pointer;
   font-weight: 600;
 }
+
+.enemy-page {
+  background: hsl(220 8% 19%);
+  color: hsl(0 0% 96%);
+}
+
+.enemy-page .muted {
+  color: hsl(210 12% 78%);
+}
+
+.enemy-page .skill-card,
+.enemy-page input,
+.enemy-page select {
+  background: hsl(220 8% 22%);
+  color: hsl(0 0% 98%);
+  border-color: hsl(220 8% 55%);
+}
