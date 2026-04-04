@@ -1,5 +1,12 @@
 import { useMemo, useState } from 'react';
 
+/**
+ * A single editable enemy row in the 3-wave node builder.
+ *
+ * We model class as an index instead of a string because:
+ * 1) the simulator math uses class-index arrays, and
+ * 2) it allows O(1) lookup into EnemyServerMod defaults.
+ */
 type EnemyRow = {
   hp: number;
   classIndex: number;
@@ -7,6 +14,12 @@ type EnemyRow = {
   npGainMod: number;
 };
 
+/**
+ * A locally saved quest/node configuration.
+ *
+ * "updatedAt" is stored as ISO text so we can safely persist in localStorage
+ * and format it for display when rendering the saved list.
+ */
 type QuestNode = {
   id: string;
   name: string;
@@ -41,6 +54,12 @@ const ATTRIBUTE_OPTIONS = ['Man', 'Sky', 'Earth', 'Star', 'Beast'];
 
 const EnemyServerMod = [1, 1, 1, 1.1, 1.2, 0.9, 0.8, 1, 1, 1.2, 1, 1, 1, 1, 1];
 
+/**
+ * Creates a default enemy row.
+ *
+ * We initialize NP gain mod from the class table to make sure the UI starts in
+ * a valid and predictable state, then keep it in sync when class changes.
+ */
 function createEnemyRow(): EnemyRow {
   return { hp: 0, classIndex: 0, attribute: 'Man', npGainMod: EnemyServerMod[0] };
 }
@@ -49,6 +68,12 @@ function createInitialEnemies(): EnemyRow[] {
   return Array.from({ length: 9 }, () => createEnemyRow());
 }
 
+/**
+ * Reads saved nodes from localStorage.
+ *
+ * This function is intentionally defensive: malformed JSON or unexpected shapes
+ * should not break the page; we fall back to an empty list instead.
+ */
 function loadSavedNodes(): QuestNode[] {
   try {
     const raw = localStorage.getItem(QUEST_STORAGE_KEY);
@@ -78,6 +103,12 @@ export function EnemiesPage(): JSX.Element {
     setEnemies((current) => current.map((enemy, index) => (index === enemyIndex ? { ...enemy, ...patch } : enemy)));
   }
 
+  /**
+   * Synchronizes class and default NP gain mod together.
+   *
+   * Decision: class changes should apply the canonical class default automatically.
+   * Users can still override NP mod manually after class selection.
+   */
   function onClassChange(enemyIndex: number, classIndex: number): void {
     updateEnemy(enemyIndex, { classIndex, npGainMod: EnemyServerMod[classIndex] ?? 1 });
   }
@@ -97,6 +128,7 @@ export function EnemiesPage(): JSX.Element {
     }
 
     const nowIso = new Date().toISOString();
+    // Clone first to keep state updates immutable and React-friendly.
     const copy = [...savedNodes];
     if (editingNodeId) {
       const index = copy.findIndex((node) => node.id === editingNodeId);
@@ -104,6 +136,7 @@ export function EnemiesPage(): JSX.Element {
         copy[index] = { ...copy[index], name: trimmedName, enemies, updatedAt: nowIso };
       }
     } else {
+      // New saves go to the top so the most recent node is immediately visible.
       copy.unshift({ id: crypto.randomUUID(), name: trimmedName, enemies, updatedAt: nowIso });
     }
 
@@ -127,7 +160,7 @@ export function EnemiesPage(): JSX.Element {
   }
 
   return (
-    <div className="card enemy-page">
+    <div className="card">
       <h2>Enemy Node Builder</h2>
       <p className="muted">Enter all enemy stats and then click save. This page is offline and no longer queries the API.</p>
       {error && <p className="error">{error}</p>}
