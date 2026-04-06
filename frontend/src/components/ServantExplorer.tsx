@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fgoApi } from '../api/fgoApi';
 import { sortClassesInFgoOrder } from '../lib/fgoClassOrder';
-import type { NoblePhantasm, ServantDetail, ServantFunction, ServantSummary } from '../types/fgo';
+import type { NoblePhantasm, ServantDetail, ServantFunction, ServantSummary, SkillDetail } from '../types/fgo';
 
 function inferLevelCount(func: ServantFunction): number {
   return [func.svals, func.svals2, func.svals3, func.svals4, func.svals5].reduce((max, current) => Math.max(max, current?.length ?? 0), 0);
@@ -26,6 +26,18 @@ function extractNumericValuesAtLevel(func: ServantFunction, levelIndex: number):
 
 function humanizeFunctionType(funcType: string): string {
   return funcType.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/_/g, ' ');
+}
+
+function decorateUnmodifiedDetail(template: string, values: Array<{ key: string; value: number }>): string {
+  const bracketMatches = template.match(/\[[^\]]+\]/g) ?? [];
+  if (bracketMatches.length === 0 || values.length === 0) return template;
+
+  let replacementIndex = 0;
+  return template.replace(/\[[^\]]+\]/g, (token) => {
+    const resolvedValue = values[Math.min(replacementIndex, values.length - 1)]?.value;
+    replacementIndex += 1;
+    return resolvedValue === undefined ? token : `${token} (${resolvedValue})`;
+  });
 }
 
 function resolveCardType(card: string | number): string {
@@ -63,6 +75,7 @@ export function ServantExplorer({ initialServantId, showBackLink = false }: Prop
   const [debugMode, setDebugMode] = useState(false);
   const [skillDebugLoading, setSkillDebugLoading] = useState(false);
   const [skillDebugPayload, setSkillDebugPayload] = useState<string>('');
+  const [skillDetailsById, setSkillDetailsById] = useState<Record<number, SkillDetail>>({});
   const isDevMode = import.meta.env.DEV;
 
   useEffect(() => {
@@ -127,6 +140,20 @@ export function ServantExplorer({ initialServantId, showBackLink = false }: Prop
 
         const detail = await fgoApi.getServant(selectedServantId);
         setServantDetail(detail);
+        const skillIds = [...new Set((detail.skills ?? []).map((skill) => skill.id).filter((id): id is number => typeof id === 'number'))];
+        const fetchedSkillDetails = await Promise.all(skillIds.map(async (id) => {
+          try {
+            return await fgoApi.getSkill(id);
+          } catch {
+            return null;
+          }
+        }));
+        const nextSkillMap: Record<number, SkillDetail> = {};
+        fetchedSkillDetails.forEach((payload, index) => {
+          if (!payload) return;
+          nextSkillMap[skillIds[index]] = payload;
+        });
+        setSkillDetailsById(nextSkillMap);
 
         const npDetails = await Promise.all(
           (detail.noblePhantasms ?? []).map(async (np) => {
@@ -294,6 +321,24 @@ export function ServantExplorer({ initialServantId, showBackLink = false }: Prop
 
           {selectedSkill && (
             <div>
+              <div className="slot">
+                {(() => {
+                  const resolvedValues = selectedSkill.functions.flatMap((func) => extractNumericValuesAtLevel(func, selectedSkillLevel - 1));
+                  const apiDetail = selectedSkill.id ? skillDetailsById[selectedSkill.id] : undefined;
+                  const unmodified = apiDetail?.unmodifiedDetail ?? apiDetail?.detail ?? selectedSkill.detail ?? 'No description provided.';
+                  const renderedDetail = decorateUnmodifiedDetail(unmodified, resolvedValues);
+                  return (
+                    <>
+                      <p><strong>Skill Effect (API unmodified detail):</strong> {renderedDetail}</p>
+                      {resolvedValues.length > 0 && (
+                        <p className="muted">
+                          Values at Lv {selectedSkillLevel}: {resolvedValues.map((entry) => `${entry.key}=${entry.value}`).join(', ')}
+                        </p>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
               {selectedSkill.functions.map((func, index) => {
                 const values = extractNumericValuesAtLevel(func, selectedSkillLevel - 1);
                 return (

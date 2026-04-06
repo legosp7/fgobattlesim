@@ -22,7 +22,7 @@ public class HttpClientConfig {
      * Creates a reusable RestClient configured with Atlas Academy's base URL.
      */
     @Bean
-    RestClient atlasAcademyRestClient(@Value("${fgo.api.base-url}") String baseUrl) {
+    RestClient atlasAcademyRestClient(@Value("${fgo.api.base-url:https://api.atlasacademy.io}") String baseUrl) {
         return RestClient.builder()
                 // Setting a base URL lets later code pass only relative paths.
                 .baseUrl(baseUrl)
