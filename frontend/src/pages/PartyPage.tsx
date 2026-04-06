@@ -11,6 +11,7 @@ import type {
   ServantFunction,
   ServantSkill,
   ServantSummary,
+  SkillDetail,
 } from '../types/fgo';
 
 type PartySlot = {
@@ -31,6 +32,7 @@ type PartySlot = {
   servantDetail: ServantDetail | null;
   selectedNp: NoblePhantasm | null;
   craftEssenceDetail: CraftEssenceDetail | null;
+  skillDetailsById: Record<number, SkillDetail>;
 };
 
 type SavedParty = {
@@ -63,6 +65,7 @@ function createEmptySlot(defaultClassName: string): PartySlot {
     servantDetail: null,
     selectedNp: null,
     craftEssenceDetail: null,
+    skillDetailsById: {},
   };
 }
 
@@ -94,6 +97,17 @@ function extractNumericValuesAtLevel(func: ServantFunction, levelIndex: number):
     });
   });
   return entries;
+}
+
+function decorateUnmodifiedDetail(template: string, values: Array<{ key: string; value: number }>): string {
+  const bracketMatches = template.match(/\[[^\]]+\]/g) ?? [];
+  if (bracketMatches.length === 0 || values.length === 0) return template;
+  let replacementIndex = 0;
+  return template.replace(/\[[^\]]+\]/g, (token) => {
+    const resolved = values[Math.min(replacementIndex, values.length - 1)]?.value;
+    replacementIndex += 1;
+    return resolved === undefined ? token : `${token} (${resolved})`;
+  });
 }
 
 function resolveCardType(card: string | number): string {
@@ -162,6 +176,19 @@ export function PartyPage(): JSX.Element {
   async function loadServantDetail(index: number, servantId: number): Promise<void> {
     try {
       const detail = await fgoApi.getServant(servantId);
+      const skillIds = [...new Set([...(detail.skills ?? []), ...(detail.appendSkills ?? [])].map((skill) => skill.id).filter((id): id is number => typeof id === 'number'))];
+      const fetchedSkillDetails = await Promise.all(skillIds.map(async (id) => {
+        try {
+          return await fgoApi.getSkill(id);
+        } catch {
+          return null;
+        }
+      }));
+      const skillDetailsById: Record<number, SkillDetail> = {};
+      fetchedSkillDetails.forEach((payload, detailIndex) => {
+        if (!payload) return;
+        skillDetailsById[skillIds[detailIndex]] = payload;
+      });
       const npDetails = await Promise.all((detail.noblePhantasms ?? []).map(async (np) => {
         try {
           return await fgoApi.getNoblePhantasm(np.id);
@@ -175,6 +202,7 @@ export function PartyPage(): JSX.Element {
         npUpgrade1: false,
         npUpgrade2: false,
         skillUpgrades: [false, false, false],
+        skillDetailsById,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load servant detail.');
@@ -209,6 +237,7 @@ export function PartyPage(): JSX.Element {
       npUpgrade2: false,
       showSkillDetails: false,
       showNpDetails: false,
+      skillDetailsById: {},
     });
     if (servantId) void loadServantDetail(index, servantId);
   }
@@ -382,6 +411,18 @@ export function PartyPage(): JSX.Element {
 
                         {slot.showSkillDetails && (
                           <>
+                            {(() => {
+                              const resolvedValues = shownSkill.functions.flatMap((func) => extractNumericValuesAtLevel(func, (slot.skillLevels[skillIndex] ?? 1) - 1));
+                              const apiSkill = shownSkill.id ? slot.skillDetailsById[shownSkill.id] : undefined;
+                              const unmodified = apiSkill?.unmodifiedDetail ?? apiSkill?.detail ?? shownSkill.detail ?? 'No description provided.';
+                              const decorated = decorateUnmodifiedDetail(unmodified, resolvedValues);
+                              return (
+                                <>
+                                  <p><strong>Effect (unmodified detail):</strong> {decorated}</p>
+                                  {resolvedValues.length > 0 && <p className="muted">Resolved values: {resolvedValues.map((entry) => `${entry.key}=${entry.value}`).join(', ')}</p>}
+                                </>
+                              );
+                            })()}
                             <p>Cooldown: {(shownSkill.coolDown ?? []).join(' / ') || 'N/A'}</p>
                             {shownSkill.functions.map((func, funcIndex) => {
                               const values = extractNumericValuesAtLevel(func, (slot.skillLevels[skillIndex] ?? 1) - 1);
@@ -415,6 +456,13 @@ export function PartyPage(): JSX.Element {
                       >
                         {Array.from({ length: 10 }, (_, i) => i + 1).map((level) => <option key={level} value={level}>Lv {level}</option>)}
                       </select>
+                      {appendSkills[appendIndex] && (() => {
+                        const appendSkill = appendSkills[appendIndex];
+                        const resolvedValues = (appendSkill.functions ?? []).flatMap((func) => extractNumericValuesAtLevel(func, (slot.appendSkillLevels[appendIndex] ?? 1) - 1));
+                        const apiSkill = appendSkill.id ? slot.skillDetailsById[appendSkill.id] : undefined;
+                        const unmodified = apiSkill?.unmodifiedDetail ?? apiSkill?.detail ?? appendSkill.detail ?? 'No description provided.';
+                        return <p className="muted">{decorateUnmodifiedDetail(unmodified, resolvedValues)}</p>;
+                      })()}
                     </div>
                   ))}
                 </div>

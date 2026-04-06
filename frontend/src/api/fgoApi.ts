@@ -5,6 +5,7 @@ import type {
   EnemySummary,
   MysticCodeSummary,
   NoblePhantasm,
+  SkillDetail,
   ServantDetail,
   ServantSummary,
 } from '../types/fgo';
@@ -24,5 +25,5 @@ export const fgoApi = {
   listEnemies: () => getJson<EnemySummary[]>('/api/enemies'),
   getEnemy: (id: number) => getJson<EnemyDetail>(`/api/enemies/${id}`),
   getNoblePhantasm: (id: number) => getJson<NoblePhantasm>(`/api/noble-phantasms/${id}`),
-  getSkill: (id: number) => getJson<unknown>(`/api/skills/${id}`),
+  getSkill: (id: number) => getJson<SkillDetail>(`/api/skills/${id}`),
 };

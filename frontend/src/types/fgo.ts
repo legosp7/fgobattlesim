@@ -29,6 +29,18 @@ export type ServantSkill = {
   functions: ServantFunction[];
 };
 
+/**
+ * Raw skill payload from Atlas `/nice/{region}/skill/{id}`.
+ *
+ * We only type the fields we actively render. Extra fields may still exist on
+ * the payload and are intentionally ignored by the UI.
+ */
+export type SkillDetail = {
+  id?: number;
+  detail?: string;
+  unmodifiedDetail?: string;
+};
+
 export type NoblePhantasm = {
   id: number;
   name: string;
