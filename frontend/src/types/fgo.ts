@@ -13,6 +13,13 @@ export type FunctionValues = Record<string, number>;
 
 export type ServantFunction = {
   funcType: string;
+  buffs?: Array<{
+    id?: number;
+    name?: string;
+    detail?: string;
+    value?: number;
+    maxRate?: number;
+  }>;
   svals: FunctionValues[];
   svals2: FunctionValues[];
   svals3: FunctionValues[];

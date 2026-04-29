@@ -124,19 +124,34 @@ function formatBuffPercent(rawValue: number): string {
 }
 
 function extractBuffPercentValues(func: ServantFunction, levelIndex: number): string[] {
+  /**
+   * Atlas function objects usually expose buff definitions directly on
+   * `functions[].buffs` (lowercase), while numeric scale values can be supplied
+   * as `value` or `maxRate` depending on the buff/function.
+   */
+  const functionBuffPercents = (func.buffs ?? [])
+    .map((buff) => {
+      const raw = typeof buff.value === 'number' ? buff.value : buff.maxRate;
+      return typeof raw === 'number' ? formatBuffPercent(raw) : null;
+    })
+    .filter((value): value is string => Boolean(value));
+
+  if (functionBuffPercents.length > 0) return functionBuffPercents;
+
+  // Fallback for payloads that nest Buffs arrays within svals rows.
   const groups = [func.svals, func.svals2, func.svals3, func.svals4, func.svals5];
-  const formatted: string[] = [];
+  const fallbackFormatted: string[] = [];
   groups.forEach((group) => {
     if (!group || levelIndex >= group.length) return;
     const row = group[levelIndex] as Record<string, unknown>;
     const buffs = Array.isArray(row.Buffs) ? row.Buffs : [];
     buffs.forEach((buff) => {
       if (buff && typeof buff === 'object' && typeof (buff as { Value?: unknown }).Value === 'number') {
-        formatted.push(formatBuffPercent((buff as { Value: number }).Value));
+        fallbackFormatted.push(formatBuffPercent((buff as { Value: number }).Value));
       }
     });
   });
-  return formatted;
+  return fallbackFormatted;
 }
 
 function resolveCardType(card: string | number): string {
@@ -460,10 +475,12 @@ export function PartyPage(): JSX.Element {
                             {shownSkill.functions.map((func, funcIndex) => {
                               const values = extractNumericValuesAtLevel(func, (slot.skillLevels[skillIndex] ?? 1) - 1);
                               const buffPercentages = extractBuffPercentValues(func, (slot.skillLevels[skillIndex] ?? 1) - 1);
+                              const buffDetails = (func.buffs ?? []).map((buff) => buff.detail || buff.name || 'Buff');
                               return (
                                 <div key={`${func.funcType}-${funcIndex}`}>
                                   <p><strong>{func.funcType}</strong></p>
                                   {buffPercentages.length > 0 && <p className="muted">Buff values: {buffPercentages.join(', ')}</p>}
+                                  {buffDetails.length > 0 && <p className="muted">Buff details: {buffDetails.join(' • ')}</p>}
                                   <ul>{values.length > 0 ? values.map((entry) => <li key={`${entry.key}-${entry.value}`}>{entry.key}: {entry.value}</li>) : <li>No numeric values at this level.</li>}</ul>
                                 </div>
                               );
