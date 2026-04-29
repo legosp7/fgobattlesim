@@ -22,7 +22,11 @@ type PartySlot = {
   npLevel: number;
   skillLevels: number[];
   appendSkillLevels: number[];
-  skillUpgrades: boolean[];
+  /**
+   * For each command skill slot (1-3), store which upgrade version is selected.
+   * 0 = base skill, 1 = first upgrade, 2 = second upgrade, etc.
+   */
+  skillUpgradeStages: number[];
   fou: boolean;
   goldenFou: boolean;
   npUpgrade1: boolean;
@@ -55,7 +59,7 @@ function createEmptySlot(defaultClassName: string): PartySlot {
     npLevel: 1,
     skillLevels: [1, 1, 1],
     appendSkillLevels: [1, 1, 1],
-    skillUpgrades: [false, false, false],
+    skillUpgradeStages: [0, 0, 0],
     fou: false,
     goldenFou: false,
     npUpgrade1: false,
@@ -69,18 +73,23 @@ function createEmptySlot(defaultClassName: string): PartySlot {
   };
 }
 
-type SkillSlotInfo = { slotNumber: number; base: ServantSkill | null; upgraded: ServantSkill | null };
+type SkillSlotInfo = { slotNumber: number; variants: ServantSkill[] };
 
 function buildSkillSlots(skills: ServantSkill[]): SkillSlotInfo[] {
-  const map = new Map<number, SkillSlotInfo>();
+  /**
+   * Tutorial note:
+   * Atlas can return multiple upgraded versions for the same skill number.
+   * We group by "num" and keep all variants, so the UI can expose more than
+   * one upgrade stage instead of a single true/false toggle.
+   */
+  const map = new Map<number, ServantSkill[]>();
   skills.forEach((skill) => {
     const slotNumber = Math.min(3, Math.max(1, skill.num || 1));
-    const current = map.get(slotNumber) ?? { slotNumber, base: null, upgraded: null };
-    if (!current.base) current.base = skill;
-    else if (!current.upgraded) current.upgraded = skill;
+    const current = map.get(slotNumber) ?? [];
+    current.push(skill);
     map.set(slotNumber, current);
   });
-  return [1, 2, 3].map((slotNumber) => map.get(slotNumber) ?? { slotNumber, base: null, upgraded: null });
+  return [1, 2, 3].map((slotNumber) => ({ slotNumber, variants: map.get(slotNumber) ?? [] }));
 }
 
 function inferLevelCount(func: ServantFunction): number {
@@ -108,6 +117,26 @@ function decorateUnmodifiedDetail(template: string, values: Array<{ key: string;
     replacementIndex += 1;
     return resolved === undefined ? token : `${token} (${resolved})`;
   });
+}
+
+function formatBuffPercent(rawValue: number): string {
+  return `${(rawValue / 10).toString().replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1')}%`;
+}
+
+function extractBuffPercentValues(func: ServantFunction, levelIndex: number): string[] {
+  const groups = [func.svals, func.svals2, func.svals3, func.svals4, func.svals5];
+  const formatted: string[] = [];
+  groups.forEach((group) => {
+    if (!group || levelIndex >= group.length) return;
+    const row = group[levelIndex] as Record<string, unknown>;
+    const buffs = Array.isArray(row.Buffs) ? row.Buffs : [];
+    buffs.forEach((buff) => {
+      if (buff && typeof buff === 'object' && typeof (buff as { Value?: unknown }).Value === 'number') {
+        formatted.push(formatBuffPercent((buff as { Value: number }).Value));
+      }
+    });
+  });
+  return formatted;
 }
 
 function resolveCardType(card: string | number): string {
@@ -201,7 +230,7 @@ export function PartyPage(): JSX.Element {
         selectedNp: npDetails[0] ?? null,
         npUpgrade1: false,
         npUpgrade2: false,
-        skillUpgrades: [false, false, false],
+        skillUpgradeStages: [0, 0, 0],
         skillDetailsById,
       });
     } catch (err) {
@@ -230,7 +259,7 @@ export function PartyPage(): JSX.Element {
       npLevel: 1,
       skillLevels: [1, 1, 1],
       appendSkillLevels: [1, 1, 1],
-      skillUpgrades: [false, false, false],
+      skillUpgradeStages: [0, 0, 0],
       fou: false,
       goldenFou: false,
       npUpgrade1: false,
@@ -376,8 +405,9 @@ export function PartyPage(): JSX.Element {
 
                 <div className="skill-row">
                   {skillSlots.map((skillSlot, skillIndex) => {
-                    const canUpgrade = Boolean(skillSlot.base && skillSlot.upgraded);
-                    const shownSkill = slot.skillUpgrades[skillIndex] && canUpgrade ? skillSlot.upgraded : skillSlot.base;
+                    const variantCount = skillSlot.variants.length;
+                    const selectedStage = Math.min(slot.skillUpgradeStages[skillIndex] ?? 0, Math.max(0, variantCount - 1));
+                    const shownSkill = skillSlot.variants[selectedStage] ?? null;
                     if (!shownSkill) return <div className="skill-card" key={skillIndex}><strong>Skill {skillIndex + 1}</strong><p className="muted">No data</p></div>;
 
                     return (
@@ -395,19 +425,22 @@ export function PartyPage(): JSX.Element {
                         >
                           {Array.from({ length: 10 }, (_, i) => i + 1).map((level) => <option key={level} value={level}>Lv {level}</option>)}
                         </select>
-                        <label className={`checkbox-item ${!canUpgrade ? 'checkbox-disabled' : ''}`}>
-                          <input
-                            className="checkbox"
-                            type="checkbox"
-                            checked={slot.skillUpgrades[skillIndex] ?? false}
-                            disabled={!canUpgrade}
-                            onChange={(event) => {
-                              const copy = [...slot.skillUpgrades];
-                              copy[skillIndex] = event.target.checked;
-                              updateSlot(index, { skillUpgrades: copy });
-                            }}
-                          /> Upgraded
-                        </label>
+                        <label>Skill Upgrade Stage</label>
+                        <select
+                          value={selectedStage}
+                          disabled={variantCount <= 1}
+                          onChange={(event) => {
+                            const copy = [...slot.skillUpgradeStages];
+                            copy[skillIndex] = Number(event.target.value);
+                            updateSlot(index, { skillUpgradeStages: copy });
+                          }}
+                        >
+                          {skillSlot.variants.map((_, variantIndex) => (
+                            <option key={`${skillIndex}-variant-${variantIndex}`} value={variantIndex}>
+                              {variantIndex === 0 ? 'Base' : `Upgrade ${variantIndex}`}
+                            </option>
+                          ))}
+                        </select>
 
                         {slot.showSkillDetails && (
                           <>
@@ -423,12 +456,14 @@ export function PartyPage(): JSX.Element {
                                 </>
                               );
                             })()}
-                            <p>Cooldown: {(shownSkill.coolDown ?? []).join(' / ') || 'N/A'}</p>
+                            <p>Cooldown (Lv {slot.skillLevels[skillIndex] ?? 1}): {(shownSkill.coolDown ?? [])[Math.max(0, (slot.skillLevels[skillIndex] ?? 1) - 1)] ?? 'N/A'}</p>
                             {shownSkill.functions.map((func, funcIndex) => {
                               const values = extractNumericValuesAtLevel(func, (slot.skillLevels[skillIndex] ?? 1) - 1);
+                              const buffPercentages = extractBuffPercentValues(func, (slot.skillLevels[skillIndex] ?? 1) - 1);
                               return (
                                 <div key={`${func.funcType}-${funcIndex}`}>
                                   <p><strong>{func.funcType}</strong></p>
+                                  {buffPercentages.length > 0 && <p className="muted">Buff values: {buffPercentages.join(', ')}</p>}
                                   <ul>{values.length > 0 ? values.map((entry) => <li key={`${entry.key}-${entry.value}`}>{entry.key}: {entry.value}</li>) : <li>No numeric values at this level.</li>}</ul>
                                 </div>
                               );
