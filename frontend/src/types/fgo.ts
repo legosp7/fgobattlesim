@@ -13,6 +13,13 @@ export type FunctionValues = Record<string, number>;
 
 export type ServantFunction = {
   funcType: string;
+  buffs?: Array<{
+    id?: number;
+    name?: string;
+    detail?: string;
+    value?: number;
+    maxRate?: number;
+  }>;
   svals: FunctionValues[];
   svals2: FunctionValues[];
   svals3: FunctionValues[];
@@ -27,6 +34,18 @@ export type ServantSkill = {
   detail?: string;
   coolDown?: number[];
   functions: ServantFunction[];
+};
+
+/**
+ * Raw skill payload from Atlas `/nice/{region}/skill/{id}`.
+ *
+ * We only type the fields we actively render. Extra fields may still exist on
+ * the payload and are intentionally ignored by the UI.
+ */
+export type SkillDetail = {
+  id?: number;
+  detail?: string;
+  unmodifiedDetail?: string;
 };
 
 export type NoblePhantasm = {

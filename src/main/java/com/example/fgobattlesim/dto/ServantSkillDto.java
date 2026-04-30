@@ -17,6 +17,7 @@ public record ServantSkillDto(
         String name,
         String detail,
         List<Integer> coolDown,
-        List<ServantFunctionDto> functions
+        List<ServantFunctionDto> functions,
+        List<ServantBuffDto> buffs
 ) {
 }
