@@ -74,8 +74,8 @@ class ServantControllerTest {
                 90,
                 List.of(1854, 3000, 4200),
                 List.of(2220, 3600, 5100),
-                List.of(new ServantSkillDto(1001L, 1, "Charisma", "ATK up", List.of(7, 6, 5), List.of(charismaFn))),
-                List.of(new ServantSkillDto(3001L, 1, "Magic Loading", "Start NP", List.of(), List.of())),
+                List.of(new ServantSkillDto(1001L, 1, "Charisma", "ATK up", List.of(7, 6, 5), List.of(charismaFn), List.of())),
+                List.of(new ServantSkillDto(3001L, 1, "Magic Loading", "Start NP", List.of(), List.of(), List.of())),
                 List.of(new NoblePhantasmDto(5001L, "Excalibur", "BUSTER", List.of(npFn)))
         ));
 
